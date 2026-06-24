@@ -1,90 +1,135 @@
-# AI Nav — Smart Navigation Panel
+# AI Nav
 
-A self-hosted navigation homepage with **AI-powered URL organization**. Paste a bunch of URLs and Claude automatically extracts titles, descriptions, favicons, and intelligently categorizes them.
+> 智能导航首页 — 粘贴 URL，AI 自动提取元数据并分类
 
-![Glassmorphism dark theme](https://img.shields.io/badge/theme-glassmorphism-dark) ![React](https://img.shields.io/badge/React-18-blue) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Express](https://img.shields.io/badge/Express-4-green) ![SQLite](https://img.shields.io/badge/SQLite-3-orange)
+[![Version](https://img.shields.io/github/v/tag/muzig/ai-nav?label=version&sort=semver)](https://github.com/muzig/ai-nav/releases)
+[![License](https://img.shields.io/github/license/muzig/ai-nav)](LICENSE)
+[![React](https://img.shields.io/badge/React-18-61DAFB)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF)](https://vitejs.dev)
+[![Express](https://img.shields.io/badge/Express-4-000000)](https://expressjs.com)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57)](https://sqlite.org)
 
 <p align="center">
   <img src="imgs/cover.png" alt="AI Nav Screenshot" width="100%" />
 </p>
 
-## Features
+## ✨ 功能特性
 
-- **AI URL Recognition** — Paste 1-100 URLs, Claude analyzes and categorizes them automatically
-- **Smart Categorization** — AI suggests categories; falls back to domain heuristics without API key
-- **Glassmorphism UI** — Frosted glass cards on dark gradient backgrounds
-- **Cmd+K Search** — Fuzzy search across all bookmarks
-- **Bulk Import** — Paste mixed text, URLs are extracted automatically
-- **Category Management** — Create, edit, delete categories with custom colors
-- **Bookmark CRUD** — Full create, read, update, delete
+- **AI 智能分组** — 粘贴 1-100 个 URL，Claude 自动分析标题、描述并分类
+- **拖拽排序** — 书签和分类支持拖拽重排
+- **编辑/只读模式** — 一键切换编辑状态
+- **内联搜索** — 主页直接过滤书签
+- **批量导入** — 粘贴混合文本，自动提取 URL
+- **分类管理** — 创建、编辑、删除分类，自定义颜色
+- **书签 CRUD** — 完整的增删改查
+- **毛玻璃 UI** — 暗色渐变背景 + 磨砂玻璃卡片
+- **无 API Key 可用** — 自动降级为基于域名的启发式分类
 
-## Quick Start
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js >= 18
+- pnpm >= 9
+
+### 安装与运行
 
 ```bash
-# Install dependencies (pnpm workspaces)
+# 克隆仓库
+git clone https://github.com/muzig/ai-nav.git
+cd ai-nav
+
+# 安装依赖
 pnpm install
 
-# Start both server and client
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入 CLAUDE_API_KEY（可选）
+
+# 启动开发服务器
 pnpm dev
 ```
 
-Open http://localhost:5173
+打开 http://localhost:5173
 
-## AI Setup (Optional)
+### 环境变量
 
-1. Click the ⚙️ Settings icon
-2. Enter your [Anthropic API key](https://console.anthropic.com)
-3. Paste URLs and click "Analyze URLs" — Claude will categorize them
+在项目根目录创建 `.env` 文件：
 
-Without an API key, basic heuristic categorization is used (domain-based pattern matching).
+| 变量名 | 别名 | 说明 |
+|--------|------|------|
+| `CLAUDE_API_KEY` | `ANTHROPIC_API_KEY` | Anthropic API 密钥 |
+| `BASE_URL` | `ANTHROPIC_BASE_URL` | 自定义 API 端点 |
+| `MODEL` | `ANTHROPIC_MODEL` | Claude 模型名称 |
 
-## Architecture
+> 优先级：Settings UI（数据库）> 环境变量 > 默认值
+
+## 📦 项目架构
 
 ```
-ai-nav/                          # pnpm workspaces + Turborepo monorepo
+ai-nav/
 ├── apps/
 │   ├── web/                     # @ai-nav/web — React + Vite + Tailwind
-│   │   ├── src/
-│   │   │   ├── components/      # Dashboard, NavCard, AddUrlModal, SearchBar
-│   │   │   ├── hooks/           # useBookmarks, useAI
-│   │   │   └── styles/          # Glassmorphism CSS
-│   │   ├── vite.config.ts
-│   │   └── package.json
-│   └── api/                     # @ai-nav/api — Express + Claude API
-│       ├── src/
-│       │   ├── routes/          # REST API endpoints
-│       │   └── services/        # Metadata extraction, AI categorization
-│       ├── tsconfig.json
-│       └── package.json
+│   │   └── src/
+│   │       ├── components/      # Dashboard, NavCard, CategoryGroup, SearchBar
+│   │       └── hooks/           # useBookmarks, useAI, useHealthCheck
+│   └── api/                     # @ai-nav/api — Express + Claude SDK
+│       └── src/
+│           ├── routes/          # REST API 路由
+│           └── services/        # 元数据提取、AI 分类
 ├── packages/
-│   ├── shared/                  # @ai-nav/shared — Types & constants
-│   │   └── src/types.ts         # Bookmark, Category, AiSuggestion, etc.
-│   └── db/                      # @ai-nav/db — SQLite schema & queries
-│       ├── src/
-│       │   ├── index.ts         # CRUD operations
-│       │   └── schema.sql       # Table definitions
-│       └── package.json
-├── turbo.json                   # Turborepo task pipeline
-├── pnpm-workspace.yaml          # Workspace definition
-└── package.json
+│   ├── shared/                  # @ai-nav/shared — 类型定义 & 常量
+│   └── db/                      # @ai-nav/db — SQLite schema & 查询
+├── turbo.json
+└── pnpm-workspace.yaml
 ```
 
-## API Endpoints
+## 🔌 API 接口
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/bookmarks` | List all bookmarks |
-| POST | `/api/bookmarks` | Create a bookmark |
-| POST | `/api/bookmarks/bulk` | Bulk create bookmarks |
-| PUT | `/api/bookmarks/:id` | Update a bookmark |
-| DELETE | `/api/bookmarks/:id` | Delete a bookmark |
-| GET | `/api/categories` | List all categories |
-| POST | `/api/categories` | Create a category |
-| POST | `/api/ai/parse` | AI URL analysis |
-| POST | `/api/ai/settings` | Save API key |
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/bookmarks` | 获取所有书签 |
+| `POST` | `/api/bookmarks` | 创建书签 |
+| `POST` | `/api/bookmarks/bulk` | 批量创建书签 |
+| `PUT` | `/api/bookmarks/:id` | 更新书签 |
+| `PUT` | `/api/bookmarks/reorder` | 重排书签 |
+| `DELETE` | `/api/bookmarks/:id` | 删除书签 |
+| `GET` | `/api/categories` | 获取所有分类 |
+| `POST` | `/api/categories` | 创建分类 |
+| `PUT` | `/api/categories/reorder` | 重排分类 |
+| `POST` | `/api/ai/parse` | AI URL 分析 |
+| `GET` | `/api/settings` | 获取设置 |
+| `PUT` | `/api/settings` | 更新设置 |
 
-## Keyboard Shortcuts
+## ⌨️ 快捷键
 
-- `⌘ K` — Search bookmarks
-- `⌘ N` — Add bookmarks
-- `ESC` — Close modals
+| 快捷键 | 功能 |
+|--------|------|
+| `⌘ K` | 搜索书签 |
+| `⌘ N` | 添加书签 |
+| `ESC` | 关闭弹窗 |
+
+## 🛠️ 开发命令
+
+```bash
+pnpm dev              # 同时启动 web + api
+pnpm dev:web          # 仅启动前端 (port 5173)
+pnpm dev:api          # 仅启动后端 (port 3001)
+pnpm build            # 构建所有包
+pnpm typecheck        # 类型检查
+pnpm lint             # 代码检查
+```
+
+## 🔒 隐私与安全
+
+- 所有数据存储在本地 SQLite 数据库，不会上传到第三方服务器
+- API 密钥仅存储在本地，用于调用 Anthropic Claude API
+- 无遥测、无数据收集
+
+## ⚠️ 免责声明
+
+本项目为非官方第三方工具，与 Anthropic 无关联。使用 Claude API 须遵守 [Anthropic 使用条款](https://www.anthropic.com/terms)。本项目按"原样"提供，不附带任何保证。
+
+## 📄 许可证
+
+[MIT](LICENSE)

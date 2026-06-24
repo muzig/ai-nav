@@ -6,7 +6,7 @@ Thanks for your interest in contributing! Here's how to get started.
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/ai-nav.git
+git clone https://github.com/muzig/ai-nav.git
 cd ai-nav
 
 # Install dependencies
