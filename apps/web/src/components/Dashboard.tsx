@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, Settings, Sparkles, Command, Loader2, Eye, Pencil } from 'lucide-react';
+import { Search, Plus, Settings, Sparkles, Command, Loader2, Eye, Pencil, Wand2, Check, AlertCircle } from 'lucide-react';
 import { useBookmarks } from '../hooks/useBookmarks';
+import { useAI } from '../hooks/useAI';
 import CategoryGroup from './CategoryGroup';
 import AddUrlModal from './AddUrlModal';
 import EditBookmarkModal from './EditBookmarkModal';
@@ -23,6 +24,8 @@ export default function Dashboard() {
     deleteCategory,
   } = useBookmarks();
 
+  const { autoGroup, autoGrouping } = useAI();
+  const [autoGroupResult, setAutoGroupResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [addUrlOpen, setAddUrlOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -40,14 +43,15 @@ export default function Dashboard() {
         e.preventDefault();
         searchRef.current?.focus();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      // Only allow Cmd+N in edit mode
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n' && mode === 'edit') {
         e.preventDefault();
         setAddUrlOpen(true);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [mode]);
 
   // Filter grouped bookmarks by search query
   const filteredGrouped = useMemo(() => {
@@ -75,6 +79,23 @@ export default function Dashboard() {
 
   const handleAddCategory = async (name: string): Promise<Category> => {
     return addCategory({ name });
+  };
+
+  const handleAutoGroup = async () => {
+    setAutoGroupResult(null);
+    const uncategorized = bookmarks.filter((b) => b.category_id === null);
+    if (uncategorized.length === 0) {
+      setAutoGroupResult({ type: 'error', message: 'No uncategorized bookmarks' });
+      setTimeout(() => setAutoGroupResult(null), 3000);
+      return;
+    }
+    const { grouped, errors } = await autoGroup(bookmarks, categories, handleAddCategory, updateBookmark);
+    if (grouped > 0) {
+      setAutoGroupResult({ type: 'success', message: `AI grouped ${grouped} bookmark${grouped > 1 ? 's' : ''}${errors ? `, ${errors} failed` : ''}` });
+    } else {
+      setAutoGroupResult({ type: 'error', message: 'No bookmarks were grouped' });
+    }
+    setTimeout(() => setAutoGroupResult(null), 4000);
   };
 
   const toggleMode = () => {
@@ -133,26 +154,77 @@ export default function Dashboard() {
               </kbd>
             </div>
 
-            {/* Add button */}
+            {/* Mode toggle */}
             <button
-              onClick={() => setAddUrlOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(167, 139, 250, 0.15))',
-                border: '1px solid rgba(0, 212, 255, 0.25)',
-              }}
+              onClick={toggleMode}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
+                isReadonly
+                  ? 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                  : 'text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20'
+              }`}
+              title={isReadonly ? 'Switch to edit mode' : 'Switch to read-only mode'}
             >
-              <Plus size={14} />
-              <span className="hidden sm:inline">Add URLs</span>
+              {isReadonly ? <Eye size={14} /> : <Pencil size={14} />}
+              <span className="hidden sm:inline">{isReadonly ? 'Read Only' : 'Edit'}</span>
             </button>
 
-            {/* Settings */}
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
-            >
-              <Settings size={18} />
-            </button>
+            {/* Add button - only in edit mode */}
+            {!isReadonly && (
+              <button
+                onClick={() => setAddUrlOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(167, 139, 250, 0.15))',
+                  border: '1px solid rgba(0, 212, 255, 0.25)',
+                }}
+              >
+                <Plus size={14} />
+                <span className="hidden sm:inline">Add URLs</span>
+              </button>
+            )}
+
+            {/* AI Auto Group button - only in edit mode */}
+            {!isReadonly && (
+              <button
+                onClick={handleAutoGroup}
+                disabled={autoGrouping}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(255, 106, 157, 0.15))',
+                  border: '1px solid rgba(167, 139, 250, 0.3)',
+                }}
+                title="AI auto-group uncategorized bookmarks"
+              >
+                {autoGrouping ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Wand2 size={14} />
+                )}
+                <span className="hidden sm:inline">{autoGrouping ? 'Grouping...' : 'AI Group'}</span>
+              </button>
+            )}
+
+            {/* Toast notification for auto-group result */}
+            {autoGroupResult && (
+              <div
+                className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium animate-slide-up glass-strong ${
+                  autoGroupResult.type === 'success' ? 'text-green-400' : 'text-red-400'
+                }`}
+              >
+                {autoGroupResult.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+                {autoGroupResult.message}
+              </div>
+            )}
+
+            {/* Settings - only in edit mode */}
+            {!isReadonly && (
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+              >
+                <Settings size={18} />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -170,23 +242,26 @@ export default function Dashboard() {
               <Sparkles size={32} className="text-accent-cyan" />
             </div>
             <h2 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-2">
-              Welcome to AI Nav
+              {isReadonly ? 'No Bookmarks Yet' : 'Welcome to AI Nav'}
             </h2>
             <p className="text-[var(--text-secondary)] max-w-md mb-8 leading-relaxed">
-              Paste a bunch of URLs and let AI organize them into categories automatically.
-              No manual sorting needed.
+              {isReadonly
+                ? 'No bookmarks have been added yet.'
+                : 'Paste a bunch of URLs and let AI organize them into categories automatically. No manual sorting needed.'}
             </p>
-            <button
-              onClick={() => setAddUrlOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-              }}
-            >
-              <Plus size={16} />
-              Add Your First Bookmarks
-            </button>
+            {!isReadonly && (
+              <button
+                onClick={() => setAddUrlOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
+                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                }}
+              >
+                <Plus size={16} />
+                Add Your First Bookmarks
+              </button>
+            )}
           </div>
         ) : (
           /* Bookmarks grouped by category */
@@ -196,6 +271,7 @@ export default function Dashboard() {
               category={group.category}
               bookmarks={group.bookmarks}
               index={i}
+              mode={mode}
               onEditBookmark={setEditingBookmark}
               onDeleteBookmark={deleteBookmark}
               onEditCategory={(cat) => {

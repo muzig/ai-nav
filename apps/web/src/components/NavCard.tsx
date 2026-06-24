@@ -3,18 +3,21 @@ import { ExternalLink, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Bookmark } from '../hooks/useBookmarks';
+import type { AppMode } from './Dashboard';
 
 interface NavCardProps {
   bookmark: Bookmark;
   index: number;
+  mode?: AppMode;
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: number) => void;
   dragHandleRef?: React.Ref<HTMLDivElement>;
 }
 
-export default function NavCard({ bookmark, index, onEdit, onDelete }: NavCardProps) {
+export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDelete }: NavCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const isReadonly = mode === 'readonly';
 
   const {
     attributes,
@@ -55,43 +58,47 @@ export default function NavCard({ bookmark, index, onEdit, onDelete }: NavCardPr
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        {/* Drag handle */}
-        <div
-          className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
-          {...listeners}
-        >
-          <GripVertical size={14} />
-        </div>
+        {/* Drag handle - only in edit mode */}
+        {!isReadonly && (
+          <div
+            className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
+            {...listeners}
+          >
+            <GripVertical size={14} />
+          </div>
+        )}
 
-        {/* Action buttons */}
-        <div
-          className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${
-            showActions ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onEdit(bookmark);
-            }}
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-colors"
-            title="Edit"
+        {/* Action buttons - only in edit mode */}
+        {!isReadonly && (
+          <div
+            className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${
+              showActions ? 'opacity-100' : 'opacity-0'
+            }`}
           >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete(bookmark.id);
-            }}
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
-            title="Delete"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(bookmark);
+              }}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-colors"
+              title="Edit"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete(bookmark.id);
+              }}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+              title="Delete"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
 
         <div className="flex items-start gap-3">
           {/* Favicon */}
