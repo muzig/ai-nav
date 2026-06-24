@@ -1,0 +1,31 @@
+{
+  "name": "ai-nav",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=@ai-nav/web",
+    "dev:api": "turbo dev --filter=@ai-nav/api",
+    "build": "turbo build",
+    "build:web": "turbo build --filter=@ai-nav/web",
+    "build:api": "turbo build --filter=@ai-nav/api",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  }
+}
