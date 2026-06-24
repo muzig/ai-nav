@@ -132,7 +132,86 @@ export default function Dashboard() {
 
   const isReadonly = mode === 'readonly';
 
+  // DnD handlers
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as number);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeStr = String(active.id);
+    const overStr = String(over.id);
+
+    // Category reorder
+    if (activeStr.startsWith('cat-') && overStr.startsWith('cat-')) {
+      const activeCatId = Number(activeStr.replace('cat-', ''));
+      const overCatId = Number(overStr.replace('cat-', ''));
+      const catIds = filteredGrouped
+        .map((g) => g.category?.id)
+        .filter((id): id is number => id != null);
+      const oldIndex = catIds.indexOf(activeCatId);
+      const newIndex = catIds.indexOf(overCatId);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = [...catIds];
+        newOrder.splice(oldIndex, 1);
+        newOrder.splice(newIndex, 0, activeCatId);
+        reorderCategories(newOrder);
+      }
+      return;
+    }
+
+    // Bookmark reorder
+    const activeId = active.id as number;
+    const overId = over.id as number;
+
+    const activeGroup = filteredGrouped.find((g) =>
+      g.bookmarks.some((b) => b.id === activeId)
+    );
+    const overGroup = filteredGrouped.find((g) =>
+      g.bookmarks.some((b) => b.id === overId)
+    );
+
+    if (!activeGroup || !overGroup) return;
+
+    if (activeGroup === overGroup) {
+      // Same category reorder
+      const ids = activeGroup.bookmarks.map((b) => b.id);
+      const oldIndex = ids.indexOf(activeId);
+      const newIndex = ids.indexOf(overId);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = [...ids];
+        newOrder.splice(oldIndex, 1);
+        newOrder.splice(newIndex, 0, activeId);
+        reorderBookmarks(activeGroup.category?.id ?? null, newOrder);
+      }
+    } else {
+      // Cross-category move
+      const sourceIds = activeGroup.bookmarks
+        .map((b) => b.id)
+        .filter((id) => id !== activeId);
+      const targetIds = overGroup.bookmarks.map((b) => b.id);
+      const overIndex = targetIds.indexOf(overId);
+      targetIds.splice(overIndex, 0, activeId);
+
+      reorderBookmarks(activeGroup.category?.id ?? null, sourceIds);
+      reorderBookmarks(overGroup.category?.id ?? null, targetIds);
+    }
+  }, [filteredGrouped, reorderBookmarks, reorderCategories]);
+
+  const activeBookmark = activeId
+    ? bookmarks.find((b) => b.id === activeId)
+    : null;
+
   return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
     <div className="min-h-screen relative">
       {/* Floating orbs */}
       <div className="orb w-[400px] h-[400px] bg-accent-cyan/5 top-[-100px] left-[-100px]" />
@@ -185,13 +264,13 @@ export default function Dashboard() {
               onClick={toggleMode}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
                 isReadonly
-                  ? 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
-                  : 'text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20'
+                  ? 'text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
               }`}
               title={isReadonly ? 'Switch to edit mode' : 'Switch to read-only mode'}
             >
-              {isReadonly ? <Eye size={14} /> : <Pencil size={14} />}
-              <span className="hidden sm:inline">{isReadonly ? 'Read Only' : 'Edit'}</span>
+              {isReadonly ? <Pencil size={14} /> : <Eye size={14} />}
+              <span className="hidden sm:inline">{isReadonly ? 'Edit' : 'Read Only'}</span>
             </button>
 
             {/* Add button - only in edit mode */}
@@ -291,29 +370,49 @@ export default function Dashboard() {
           </div>
         ) : (
           /* Bookmarks grouped by category */
-          filteredGrouped.map((group, i) => (
-            <CategoryGroup
-              key={group.category?.id ?? 'uncategorized'}
-              category={group.category}
-              bookmarks={group.bookmarks}
-              index={i}
-              mode={mode}
-              onEditBookmark={setEditingBookmark}
-              onDeleteBookmark={deleteBookmark}
-              onEditCategory={(cat) => {
-                const name = prompt('Category name:', cat.name);
-                if (name?.trim()) updateCategory(cat.id, { name: name.trim() });
-              }}
-              onDeleteCategory={(id) => {
-                if (confirm('Delete this category? Bookmarks will become uncategorized.')) {
-                  deleteCategory(id);
-                }
-              }}
-              onAddBookmark={(categoryId) => setAddUrlOpen(true)}
-            />
-          ))
+          <SortableContext
+            items={filteredGrouped.map((g) => `cat-${g.category?.id ?? 'uncategorized'}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {filteredGrouped.map((group, i) => (
+              <SortableCategoryGroup
+                key={group.category?.id ?? 'uncategorized'}
+                id={group.category?.id ?? 'uncategorized'}
+                category={group.category}
+                bookmarks={group.bookmarks}
+                index={i}
+                mode={mode}
+                onEditBookmark={setEditingBookmark}
+                onDeleteBookmark={deleteBookmark}
+                onEditCategory={(cat) => {
+                  const name = prompt('Category name:', cat.name);
+                  if (name?.trim()) updateCategory(cat.id, { name: name.trim() });
+                }}
+                onDeleteCategory={(id) => {
+                  if (confirm('Delete this category? Bookmarks will become uncategorized.')) {
+                    deleteCategory(id);
+                  }
+                }}
+                onAddBookmark={(categoryId) => setAddUrlOpen(true)}
+              />
+            ))}
+          </SortableContext>
         )}
       </main>
+
+      {/* Drag overlay */}
+      <DragOverlay>
+        {activeBookmark ? (
+          <div className="opacity-90">
+            <NavCard
+              bookmark={activeBookmark}
+              index={0}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
 
       {/* Modals */}
       <AddUrlModal
@@ -337,5 +436,6 @@ export default function Dashboard() {
         onClose={() => setSettingsOpen(false)}
       />
     </div>
+    </DndContext>
   );
 }
