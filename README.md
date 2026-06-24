@@ -4,6 +4,10 @@ A self-hosted navigation homepage with **AI-powered URL organization**. Paste a 
 
 ![Glassmorphism dark theme](https://img.shields.io/badge/theme-glassmorphism-dark) ![React](https://img.shields.io/badge/React-18-blue) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Express](https://img.shields.io/badge/Express-4-green) ![SQLite](https://img.shields.io/badge/SQLite-3-orange)
 
+<p align="center">
+  <img src="imgs/cover.png" alt="AI Nav Screenshot" width="100%" />
+</p>
+
 ## Features
 
 - **AI URL Recognition** — Paste 1-100 URLs, Claude analyzes and categorizes them automatically
