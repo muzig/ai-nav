@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Search, Plus, Settings, Sparkles, Command, Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Search, Plus, Settings, Sparkles, Command, Loader2, Eye, Pencil } from 'lucide-react';
 import { useBookmarks } from '../hooks/useBookmarks';
 import CategoryGroup from './CategoryGroup';
-import SearchBar from './SearchBar';
 import AddUrlModal from './AddUrlModal';
 import EditBookmarkModal from './EditBookmarkModal';
 import SettingsPanel from './SettingsPanel';
 import type { Bookmark, Category } from '../hooks/useBookmarks';
+
+export type AppMode = 'edit' | 'readonly';
 
 export default function Dashboard() {
   const {
@@ -22,17 +23,22 @@ export default function Dashboard() {
     deleteCategory,
   } = useBookmarks();
 
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [addUrlOpen, setAddUrlOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const [mode, setMode] = useState<AppMode>(() => {
+    const saved = localStorage.getItem('ai-nav-mode');
+    return (saved === 'readonly' || saved === 'edit') ? saved : 'edit';
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setSearchOpen(true);
+        searchRef.current?.focus();
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();
@@ -42,6 +48,23 @@ export default function Dashboard() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  // Filter grouped bookmarks by search query
+  const filteredGrouped = useMemo(() => {
+    if (!searchQuery.trim()) return grouped;
+    const q = searchQuery.toLowerCase();
+    return grouped
+      .map((group) => ({
+        ...group,
+        bookmarks: group.bookmarks.filter(
+          (b) =>
+            b.title.toLowerCase().includes(q) ||
+            b.url.toLowerCase().includes(q) ||
+            b.description.toLowerCase().includes(q)
+        ),
+      }))
+      .filter((group) => group.bookmarks.length > 0);
+  }, [grouped, searchQuery]);
 
   const handleConfirmBookmarks = async (
     items: Array<{ title: string; url: string; description: string; favicon: string; category_id: number | null }>
@@ -53,6 +76,14 @@ export default function Dashboard() {
   const handleAddCategory = async (name: string): Promise<Category> => {
     return addCategory({ name });
   };
+
+  const toggleMode = () => {
+    const newMode = mode === 'edit' ? 'readonly' : 'edit';
+    setMode(newMode);
+    localStorage.setItem('ai-nav-mode', newMode);
+  };
+
+  const isReadonly = mode === 'readonly';
 
   return (
     <div className="min-h-screen relative">
@@ -78,17 +109,29 @@ export default function Dashboard() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Search button */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-white/5 hover:bg-white/8 border border-white/5 transition-all"
-            >
-              <Search size={14} />
-              <span className="hidden sm:inline">Search</span>
-              <kbd className="hidden sm:flex items-center gap-0.5 text-[10px] ml-2 bg-white/5 px-1.5 py-0.5 rounded">
+            {/* Inline search */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-white/5 border border-white/5 focus-within:border-accent-cyan/30 transition-all w-48 sm:w-64">
+              <Search size={14} className="text-[var(--text-muted)] flex-shrink-0" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="flex-1 bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm outline-none min-w-0"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] flex-shrink-0"
+                >
+                  ×
+                </button>
+              )}
+              <kbd className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded flex-shrink-0">
                 <Command size={10} />K
               </kbd>
-            </button>
+            </div>
 
             {/* Add button */}
             <button
@@ -147,7 +190,7 @@ export default function Dashboard() {
           </div>
         ) : (
           /* Bookmarks grouped by category */
-          grouped.map((group, i) => (
+          filteredGrouped.map((group, i) => (
             <CategoryGroup
               key={group.category?.id ?? 'uncategorized'}
               category={group.category}
@@ -171,12 +214,6 @@ export default function Dashboard() {
       </main>
 
       {/* Modals */}
-      <SearchBar
-        bookmarks={bookmarks}
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
-
       <AddUrlModal
         isOpen={addUrlOpen}
         onClose={() => setAddUrlOpen(false)}
