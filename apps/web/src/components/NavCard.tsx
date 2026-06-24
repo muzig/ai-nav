@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Bookmark } from '../hooks/useBookmarks';
 
 interface NavCardProps {
@@ -7,11 +9,28 @@ interface NavCardProps {
   index: number;
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: number) => void;
+  dragHandleRef?: React.Ref<HTMLDivElement>;
 }
 
 export default function NavCard({ bookmark, index, onEdit, onDelete }: NavCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bookmark.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
 
   const domain = (() => {
     try {
@@ -23,17 +42,27 @@ export default function NavCard({ bookmark, index, onEdit, onDelete }: NavCardPr
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className="stagger-child group relative"
-      style={{ animationDelay: `${index * 50}ms` }}
+      {...attributes}
     >
       <a
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="glass glass-hover block p-4 cursor-pointer no-underline"
+        className="glass glass-hover block p-4 cursor-pointer no-underline h-[120px]"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
+        {/* Drag handle */}
+        <div
+          className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
+          {...listeners}
+        >
+          <GripVertical size={14} />
+        </div>
+
         {/* Action buttons */}
         <div
           className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${
@@ -93,11 +122,9 @@ export default function NavCard({ bookmark, index, onEdit, onDelete }: NavCardPr
             <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
               {domain}
             </p>
-            {bookmark.description && (
-              <p className="text-xs text-[var(--text-muted)] mt-1.5 line-clamp-2 leading-relaxed">
-                {bookmark.description}
-              </p>
-            )}
+            <p className="text-xs text-[var(--text-muted)] mt-1.5 line-clamp-2 leading-relaxed">
+              {bookmark.description || ' '}
+            </p>
           </div>
         </div>
       </a>
