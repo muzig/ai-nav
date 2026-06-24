@@ -5,35 +5,51 @@ import { getAllCategories, setSetting, getSetting } from '@ai-nav/db';
 
 const router = Router();
 
-// POST /api/ai/parse — parse and categorize a batch of URLs
+// POST /api/ai/parse — parse and categorize URLs
+// Supports two modes:
+//   { urls: string[] }                    — extract metadata from URLs
+//   { items: [{ url, title, description }] } — use provided metadata (for re-grouping)
 router.post('/parse', async (req, res) => {
   try {
-    const { urls } = req.body;
-    if (!Array.isArray(urls) || urls.length === 0) {
-      return res.status(400).json({ error: 'urls array is required' });
-    }
+    const { urls, items } = req.body;
 
-    // Validate and clean URLs
-    const validUrls: string[] = [];
-    for (const raw of urls) {
-      try {
-        const url = raw.trim();
-        if (!url) continue;
-        // Add protocol if missing
-        const normalized = url.startsWith('http') ? url : `https://${url}`;
-        new URL(normalized); // validate
-        validUrls.push(normalized);
-      } catch {
-        // skip invalid URLs
+    let metadata: Array<{ url: string; title: string; description: string; favicon: string }>;
+
+    if (Array.isArray(items) && items.length > 0) {
+      // Mode 2: use provided metadata (AI re-group existing bookmarks)
+      metadata = items
+        .filter((item: any) => item?.url)
+        .map((item: any) => {
+          const url = item.url.trim();
+          const normalized = url.startsWith('http') ? url : `https://${url}`;
+          let hostname = '';
+          try { hostname = new URL(normalized).hostname; } catch { hostname = normalized; }
+          return {
+            url: normalized,
+            title: (item.title || hostname).trim(),
+            description: (item.description || '').trim(),
+            favicon: item.favicon || `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`,
+          };
+        });
+    } else if (Array.isArray(urls) && urls.length > 0) {
+      // Mode 1: extract metadata from URLs
+      const validUrls: string[] = [];
+      for (const raw of urls) {
+        try {
+          const url = raw.trim();
+          if (!url) continue;
+          const normalized = url.startsWith('http') ? url : `https://${url}`;
+          new URL(normalized);
+          validUrls.push(normalized);
+        } catch { /* skip */ }
       }
+      if (validUrls.length === 0) {
+        return res.status(400).json({ error: 'No valid URLs provided' });
+      }
+      metadata = await extractMetadataBulk(validUrls);
+    } else {
+      return res.status(400).json({ error: 'urls or items array is required' });
     }
-
-    if (validUrls.length === 0) {
-      return res.status(400).json({ error: 'No valid URLs provided' });
-    }
-
-    // Extract metadata
-    const metadata = await extractMetadataBulk(validUrls);
 
     // Get existing categories
     const categories = getAllCategories();
@@ -52,19 +68,27 @@ router.post('/parse', async (req, res) => {
   }
 });
 
-// POST /api/ai/settings — save API key
+// POST /api/ai/settings — save AI settings
 router.post('/settings', (req, res) => {
-  const { claude_api_key } = req.body;
+  const { claude_api_key, base_url, model } = req.body;
   if (claude_api_key !== undefined) {
     setSetting('claude_api_key', claude_api_key);
+  }
+  if (base_url !== undefined) {
+    setSetting('base_url', base_url);
+  }
+  if (model !== undefined) {
+    setSetting('model', model);
   }
   res.json({ success: true });
 });
 
-// GET /api/ai/settings — check if API key is set
+// GET /api/ai/settings — get AI settings status
 router.get('/settings', (_req, res) => {
   const hasKey = !!getSetting('claude_api_key');
-  res.json({ hasApiKey: hasKey });
+  const baseURL = getSetting('base_url') || '';
+  const model = getSetting('model') || '';
+  res.json({ hasApiKey: hasKey, baseURL, model });
 });
 
 export default router;

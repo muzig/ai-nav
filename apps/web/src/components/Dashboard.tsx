@@ -109,9 +109,8 @@ export default function Dashboard() {
 
   const handleAutoGroup = async () => {
     setAutoGroupResult(null);
-    const uncategorized = bookmarks.filter((b) => b.category_id === null);
-    if (uncategorized.length === 0) {
-      setAutoGroupResult({ type: 'error', message: 'No uncategorized bookmarks' });
+    if (bookmarks.length === 0) {
+      setAutoGroupResult({ type: 'error', message: 'No bookmarks to group' });
       setTimeout(() => setAutoGroupResult(null), 3000);
       return;
     }

@@ -48,11 +48,11 @@ export function useAI() {
     }
   };
 
-  const saveApiKey = async (key: string) => {
+  const saveSettings = async (settings: { claude_api_key?: string; base_url?: string; model?: string }) => {
     await fetch('/api/ai/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ claude_api_key: key }),
+      body: JSON.stringify(settings),
     });
   };
 
@@ -63,8 +63,8 @@ export function useAI() {
   };
 
   /**
-   * Auto-group uncategorized bookmarks using AI.
-   * Sends their URLs to /api/ai/parse, resolves categories, and updates each bookmark.
+   * Auto-group ALL bookmarks using AI based on their title/description/URL.
+   * Re-categorizes everything intelligently, not just uncategorized ones.
    */
   const autoGroup = async (
     bookmarks: Bookmark[],
@@ -76,19 +76,21 @@ export function useAI() {
     setError(null);
 
     try {
-      // Filter uncategorized bookmarks
-      const targets = bookmarks.filter((b) => b.category_id === null);
-      if (targets.length === 0) {
-        setError('No uncategorized bookmarks to group');
+      if (bookmarks.length === 0) {
+        setError('No bookmarks to group');
         return { grouped: 0, errors: 0 };
       }
 
-      // Send URLs to AI parse
-      const urls = targets.map((b) => b.url);
+      // Send all bookmark URLs + metadata to AI parse
+      const items = bookmarks.map((b) => ({
+        url: b.url,
+        title: b.title,
+        description: b.description,
+      }));
       const res = await fetch('/api/ai/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls }),
+        body: JSON.stringify({ items }),
       });
 
       if (!res.ok) {
@@ -108,7 +110,7 @@ export function useAI() {
       let errors = 0;
 
       for (const suggestion of data.suggestions) {
-        const target = targets.find((b) => b.url === suggestion.url);
+        const target = bookmarks.find((b) => b.url === suggestion.url);
         if (!target) continue;
 
         const catName = suggestion.suggestedCategory;
@@ -126,6 +128,12 @@ export function useAI() {
             errors++;
             continue;
           }
+        }
+
+        // Skip if already in the correct category
+        if (target.category_id === categoryId) {
+          grouped++;
+          continue;
         }
 
         // Update bookmark's category
@@ -154,7 +162,7 @@ export function useAI() {
     error,
     parseUrls,
     autoGroup,
-    saveApiKey,
+    saveSettings,
     checkApiKey,
     clearResult: () => setResult(null),
     clearError: () => setError(null),

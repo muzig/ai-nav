@@ -2,10 +2,17 @@ import Anthropic from '@anthropic-ai/sdk';
 import { getSetting } from '@ai-nav/db';
 import type { UrlMetadata, AiSuggestion } from '@ai-nav/shared';
 
+const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+
 function getClient(): Anthropic | null {
   const apiKey = getSetting('claude_api_key');
   if (!apiKey) return null;
-  return new Anthropic({ apiKey });
+  const baseURL = getSetting('base_url') || undefined;
+  return new Anthropic({ apiKey, baseURL });
+}
+
+function getModel(): string {
+  return getSetting('model') || DEFAULT_MODEL;
 }
 
 export async function categorizeUrls(
@@ -52,7 +59,7 @@ Guidelines:
 
   try {
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: getModel(),
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     });

@@ -5,7 +5,7 @@ import categoriesRouter from './routes/categories.js';
 import aiRouter from './routes/ai.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));

@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
-import { X, Key, Loader2, Check, AlertCircle } from 'lucide-react';
+import { X, Key, Globe, Cpu, Loader2, Check, AlertCircle } from 'lucide-react';
 
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const MODEL_OPTIONS = [
+  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+  { value: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
+];
+
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState(false);
+  const [baseUrl, setBaseUrl] = useState('');
+  const [model, setModel] = useState('claude-haiku-4-5-20251001');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -16,26 +24,33 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     if (isOpen) {
       fetch('/api/ai/settings')
         .then((r) => r.json())
-        .then((data) => setHasKey(data.hasApiKey));
+        .then((data) => {
+          setHasKey(data.hasApiKey);
+          setBaseUrl(data.baseURL || '');
+          setModel(data.model || 'claude-haiku-4-5-20251001');
+        });
       setSaved(false);
     }
   }, [isOpen]);
 
   const handleSave = async () => {
-    if (!apiKey.trim()) return;
     setSaving(true);
     try {
       await fetch('/api/ai/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claude_api_key: apiKey }),
+        body: JSON.stringify({
+          claude_api_key: apiKey.trim() || undefined,
+          base_url: baseUrl.trim(),
+          model,
+        }),
       });
-      setHasKey(true);
+      if (apiKey.trim()) setHasKey(true);
       setSaved(true);
       setApiKey('');
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      console.error('Failed to save API key:', err);
+      console.error('Failed to save settings:', err);
     } finally {
       setSaving(false);
     }
@@ -88,33 +103,75 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               </a>
             </p>
 
-            <div className="flex gap-2">
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-ant-api..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-accent-cyan/30"
-              />
-              <button
-                onClick={handleSave}
-                disabled={!apiKey.trim() || saving}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
-                  border: '1px solid rgba(0, 212, 255, 0.3)',
-                }}
-              >
-                {saving ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : saved ? (
-                  <Check size={14} className="text-green-400" />
-                ) : (
-                  'Save'
-                )}
-              </button>
-            </div>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="sk-ant-api..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-accent-cyan/30"
+            />
           </div>
+
+          {/* Base URL section */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Globe size={16} className="text-accent-cyan" />
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">Base URL</h3>
+            </div>
+            <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
+              Custom API endpoint for proxies or compatible services. Leave empty to use the default Anthropic endpoint.
+            </p>
+
+            <input
+              type="url"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="https://api.anthropic.com"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-accent-cyan/30"
+            />
+          </div>
+
+          {/* Model section */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Cpu size={16} className="text-accent-cyan" />
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">Model</h3>
+            </div>
+            <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
+              Choose the Claude model for AI categorization. Faster models are cheaper but less accurate.
+            </p>
+
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30 appearance-none cursor-pointer"
+            >
+              {MODEL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-[var(--bg-primary)]">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Save button */}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
+              border: '1px solid rgba(0, 212, 255, 0.3)',
+            }}
+          >
+            {saving ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : saved ? (
+              <Check size={14} className="text-green-400" />
+            ) : (
+              'Save Settings'
+            )}
+          </button>
 
           {/* Keyboard shortcuts */}
           <div>
