@@ -4,6 +4,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  reorderCategories,
 } from '@ai-nav/db';
 
 const router = Router();
@@ -22,6 +23,16 @@ router.post('/', (req, res) => {
   }
   const category = createCategory({ name, icon, color });
   res.status(201).json(category);
+});
+
+// PUT /api/categories/reorder
+router.put('/reorder', (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids)) {
+    return res.status(400).json({ error: 'ids array is required' });
+  }
+  reorderCategories(ids);
+  res.json({ success: true });
 });
 
 // PUT /api/categories/:id

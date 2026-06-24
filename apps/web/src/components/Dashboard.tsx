@@ -1,8 +1,26 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Search, Plus, Settings, Sparkles, Command, Loader2, Eye, Pencil, Wand2, Check, AlertCircle } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAI } from '../hooks/useAI';
 import CategoryGroup from './CategoryGroup';
+import SortableCategoryGroup from './SortableCategoryGroup';
+import NavCard from './NavCard';
 import AddUrlModal from './AddUrlModal';
 import EditBookmarkModal from './EditBookmarkModal';
 import SettingsPanel from './SettingsPanel';
@@ -22,6 +40,8 @@ export default function Dashboard() {
     addCategory,
     updateCategory,
     deleteCategory,
+    reorderBookmarks,
+    reorderCategories,
   } = useBookmarks();
 
   const { autoGroup, autoGrouping } = useAI();
@@ -34,7 +54,13 @@ export default function Dashboard() {
     const saved = localStorage.getItem('ai-nav-mode');
     return (saved === 'readonly' || saved === 'edit') ? saved : 'edit';
   });
+  const [activeId, setActiveId] = useState<number | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   // Keyboard shortcuts
   useEffect(() => {

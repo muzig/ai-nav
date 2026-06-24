@@ -5,6 +5,7 @@ import {
   updateBookmark,
   deleteBookmark,
   createBookmarksBulk,
+  reorderBookmarks,
 } from '@ai-nav/db';
 
 const router = Router();
@@ -33,6 +34,16 @@ router.post('/bulk', (req, res) => {
   }
   const bookmarks = createBookmarksBulk(items);
   res.status(201).json(bookmarks);
+});
+
+// PUT /api/bookmarks/reorder
+router.put('/reorder', (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids)) {
+    return res.status(400).json({ error: 'ids array is required' });
+  }
+  reorderBookmarks(ids);
+  res.json({ success: true });
 });
 
 // PUT /api/bookmarks/:id

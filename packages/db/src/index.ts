@@ -51,6 +51,14 @@ export function deleteBookmark(id: number): boolean {
   return db.prepare('DELETE FROM bookmarks WHERE id = ?').run(id).changes > 0;
 }
 
+export function reorderBookmarks(ids: number[]): void {
+  const stmt = db.prepare('UPDATE bookmarks SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+  const reorderMany = db.transaction((items: number[]) => {
+    items.forEach((id, index) => stmt.run(index, id));
+  });
+  reorderMany(ids);
+}
+
 export function createBookmarksBulk(items: CreateBookmarkInput[]): Bookmark[] {
   const insert = db.prepare(`
     INSERT INTO bookmarks (title, url, description, favicon, category_id, sort_order)
@@ -102,6 +110,14 @@ export function updateCategory(id: number, data: Partial<CreateCategoryInput>): 
 export function deleteCategory(id: number): boolean {
   db.prepare('UPDATE bookmarks SET category_id = NULL WHERE category_id = ?').run(id);
   return db.prepare('DELETE FROM categories WHERE id = ?').run(id).changes > 0;
+}
+
+export function reorderCategories(ids: number[]): void {
+  const stmt = db.prepare('UPDATE categories SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+  const reorderMany = db.transaction((items: number[]) => {
+    items.forEach((id, index) => stmt.run(index, id));
+  });
+  reorderMany(ids);
 }
 
 // ==================== Settings ====================

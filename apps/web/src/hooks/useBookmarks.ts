@@ -102,6 +102,40 @@ export function useBookmarks() {
     setBookmarks((prev) => prev.map((b) => (b.category_id === id ? { ...b, category_id: null } : b)));
   };
 
+  const reorderBookmarks = async (categoryId: number | null, ids: number[]) => {
+    // Optimistic update
+    setBookmarks((prev) => {
+      const updated = [...prev];
+      ids.forEach((id, index) => {
+        const bm = updated.find((b) => b.id === id);
+        if (bm) bm.sort_order = index;
+      });
+      return updated;
+    });
+    await fetch(`${API}/bookmarks/reorder`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+  };
+
+  const reorderCategories = async (ids: number[]) => {
+    // Optimistic update
+    setCategories((prev) => {
+      const updated = [...prev];
+      ids.forEach((id, index) => {
+        const cat = updated.find((c) => c.id === id);
+        if (cat) cat.sort_order = index;
+      });
+      return updated.sort((a, b) => a.sort_order - b.sort_order);
+    });
+    await fetch(`${API}/categories/reorder`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+  };
+
   // Group bookmarks by category
   const grouped: GroupedBookmarks[] = [];
   const uncategorized = bookmarks.filter((b) => b.category_id === null);
@@ -129,6 +163,8 @@ export function useBookmarks() {
     addCategory,
     updateCategory,
     deleteCategory,
+    reorderBookmarks,
+    reorderCategories,
     refetch: fetchAll,
   };
 }
