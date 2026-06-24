@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { extractMetadataBulk } from '../services/metadata.js';
-import { categorizeUrls } from '../services/ai.js';
+import { categorizeUrls, getEffectiveSetting } from '../services/ai.js';
 import { getAllCategories, setSetting, getSetting } from '@ai-nav/db';
 
 const router = Router();
@@ -85,10 +85,17 @@ router.post('/settings', (req, res) => {
 
 // GET /api/ai/settings — get AI settings status
 router.get('/settings', (_req, res) => {
-  const hasKey = !!getSetting('claude_api_key');
-  const baseURL = getSetting('base_url') || '';
-  const model = getSetting('model') || '';
-  res.json({ hasApiKey: hasKey, baseURL, model });
+  const keyInfo = getEffectiveSetting('claude_api_key');
+  const urlInfo = getEffectiveSetting('base_url');
+  const modelInfo = getEffectiveSetting('model');
+  res.json({
+    hasApiKey: !!keyInfo.value,
+    apiKeySource: keyInfo.source,
+    baseURL: urlInfo.value,
+    baseURLSource: urlInfo.source,
+    model: modelInfo.value,
+    modelSource: modelInfo.source,
+  });
 });
 
 export default router;

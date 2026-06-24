@@ -4,15 +4,41 @@ import type { UrlMetadata, AiSuggestion } from '@ai-nav/shared';
 
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 
+/** Get effective setting: DB value takes priority, env var as fallback */
+export function getEffectiveSetting(key: string): { value: string; source: 'db' | 'env' | 'default' } {
+  const dbValue = getSetting(key);
+  if (dbValue) return { value: dbValue, source: 'db' };
+
+  // Env var mapping with aliases
+  const envKeys: string[] = [];
+  if (key === 'claude_api_key') {
+    envKeys.push('CLAUDE_API_KEY', 'ANTHROPIC_API_KEY');
+  } else if (key === 'base_url') {
+    envKeys.push('BASE_URL', 'ANTHROPIC_BASE_URL');
+  } else if (key === 'model') {
+    envKeys.push('MODEL', 'ANTHROPIC_MODEL');
+  } else {
+    envKeys.push(key.toUpperCase());
+  }
+
+  for (const envKey of envKeys) {
+    const envValue = process.env[envKey];
+    if (envValue) return { value: envValue, source: 'env' };
+  }
+
+  if (key === 'model') return { value: DEFAULT_MODEL, source: 'default' };
+  return { value: '', source: 'default' };
+}
+
 function getClient(): Anthropic | null {
-  const apiKey = getSetting('claude_api_key');
+  const apiKey = getEffectiveSetting('claude_api_key').value;
   if (!apiKey) return null;
-  const baseURL = getSetting('base_url') || undefined;
+  const baseURL = getEffectiveSetting('base_url').value || undefined;
   return new Anthropic({ apiKey, baseURL });
 }
 
 function getModel(): string {
-  return getSetting('model') || DEFAULT_MODEL;
+  return getEffectiveSetting('model').value;
 }
 
 export async function categorizeUrls(
@@ -25,7 +51,7 @@ export async function categorizeUrls(
   if (!client) {
     return metadata.map((m) => ({
       ...m,
-      suggestedCategory: heuristicCategory(m.url, existingCategories),
+      suggestedCategory: heuristicCategory(m.url, existingCategories, m.title),
       confidence: 0.5,
     }));
   }
@@ -34,14 +60,14 @@ export async function categorizeUrls(
     .map((m, i) => `${i + 1}. ${m.url}\n   Title: ${m.title}\n   Desc: ${m.description}`)
     .join('\n');
 
-  const prompt = `You are a bookmark organizer. Analyze these URLs and categorize each one.
+  const prompt = `You are a bookmark organizer. Categorize each bookmark primarily based on its **title/name**, using the URL and description as supporting context.
 
-URLs:
+Bookmarks:
 ${urlList}
 
 Existing categories: ${existingCategories.join(', ') || 'none yet'}
 
-For each URL, suggest:
+For each bookmark, suggest:
 1. The best category (use an existing one if it fits, or suggest a new concise category name)
 2. A confidence score (0.0-1.0)
 
@@ -52,10 +78,11 @@ Respond with ONLY a JSON array, no explanation:
 ]
 
 Guidelines:
+- **Prioritize the title/name** for categorization (e.g. "Grafana" → Monitoring, "Gitea" → Dev Tools, "Netflix" → Entertainment)
 - Prefer reusing existing categories when appropriate
 - Category names should be 1-3 words, title case
-- Common categories: AI Tools, Dev Tools, Social, Self-hosted, Entertainment, News, Shopping, Productivity, Cloud Services, Documentation
-- Higher confidence for well-known sites`;
+- Common categories: AI Tools, Dev Tools, Social, Self-hosted, Entertainment, News, Shopping, Productivity, Cloud Services, Documentation, Monitoring, Design, Communication
+- Higher confidence for well-known tools/sites`;
 
   try {
     const response = await client.messages.create({
@@ -79,7 +106,7 @@ Guidelines:
       const suggestion = suggestions.find((s) => s.index === i);
       return {
         ...m,
-        suggestedCategory: suggestion?.suggestedCategory || heuristicCategory(m.url, existingCategories),
+        suggestedCategory: suggestion?.suggestedCategory || heuristicCategory(m.url, existingCategories, m.title),
         confidence: suggestion?.confidence || 0.5,
       };
     });
@@ -87,16 +114,42 @@ Guidelines:
     console.error('AI categorization failed, using heuristics:', err);
     return metadata.map((m) => ({
       ...m,
-      suggestedCategory: heuristicCategory(m.url, existingCategories),
+      suggestedCategory: heuristicCategory(m.url, existingCategories, m.title),
       confidence: 0.5,
     }));
   }
 }
 
-function heuristicCategory(url: string, existing: string[]): string {
+function heuristicCategory(url: string, existing: string[], title?: string): string {
   const hostname = new URL(url).hostname.toLowerCase();
+  const name = (title || '').toLowerCase();
 
-  const rules: [RegExp, string][] = [
+  // Title-based rules (higher priority)
+  const titleRules: [RegExp, string][] = [
+    [/grafana|prometheus|zabbix|nagios|uptime/, 'Monitoring'],
+    [/gitea|gitlab|github|gerrit|bitbucket|forgejo/, 'Dev Tools'],
+    [/cloudreve|nextcloud|owncloud|synology|nas/, 'Self-hosted'],
+    [/figma|sketch|canva|dribbble/, 'Design'],
+    [/slack|discord|telegram|teams|zoom|matrix/, 'Communication'],
+    [/notion|obsidian|logseq|trello|jira|linear/, 'Productivity'],
+    [/chatgpt|claude|gemini|copilot|midjourney|stable.diffusion/, 'AI Tools'],
+    [/netflix|youtube|bilibili|twitch|spotify|plex/, 'Entertainment'],
+    [/reddit|twitter|facebook|instagram|mastodon|weibo/, 'Social'],
+    [/aws|azure|gcp|cloudflare|vercel|netlify|digitalocean/, 'Cloud Services'],
+    [/news|bbc|cnn|reuters|hacker.news|techcrunch/, 'News'],
+    [/teslamate|tesla/, 'Monitoring'],
+  ];
+
+  // Check title first
+  for (const [pattern, category] of titleRules) {
+    if (pattern.test(name)) {
+      const match = existing.find((c) => c.toLowerCase() === category.toLowerCase());
+      return match || category;
+    }
+  }
+
+  // Fallback to hostname
+  const hostRules: [RegExp, string][] = [
     [/github|gitlab|bitbucket|npmjs|pypi|crates\.io/, 'Dev Tools'],
     [/chatgpt|openai|anthropic|claude|gemini|huggingface|replicate/, 'AI Tools'],
     [/twitter|x\.com|facebook|instagram|linkedin|reddit|discord|mastodon/, 'Social'],
@@ -107,9 +160,8 @@ function heuristicCategory(url: string, existing: string[]): string {
     [/news|bbc|cnn|reuters/, 'News'],
   ];
 
-  for (const [pattern, category] of rules) {
+  for (const [pattern, category] of hostRules) {
     if (pattern.test(hostname)) {
-      // Try to match existing category
       const match = existing.find((c) => c.toLowerCase() === category.toLowerCase());
       return match || category;
     }

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, Key, Globe, Cpu, Loader2, Check, AlertCircle } from 'lucide-react';
+import { X, Key, Globe, Cpu, Loader2, Check, AlertCircle, Server } from 'lucide-react';
 
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+type SettingSource = 'db' | 'env' | 'default';
 
 const MODEL_OPTIONS = [
   { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
@@ -12,11 +14,33 @@ const MODEL_OPTIONS = [
   { value: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
 ];
 
+function SourceBadge({ source }: { source: SettingSource }) {
+  if (source === 'default') return null;
+  return (
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full border ${
+        source === 'env'
+          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+          : 'bg-green-500/10 text-green-400 border-green-500/20'
+      }`}
+    >
+      {source === 'env' ? (
+        <span className="flex items-center gap-1"><Server size={10} /> Environment</span>
+      ) : (
+        'Configured'
+      )}
+    </span>
+  );
+}
+
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState(false);
+  const [apiKeySource, setApiKeySource] = useState<SettingSource>('default');
   const [baseUrl, setBaseUrl] = useState('');
+  const [baseUrlSource, setBaseUrlSource] = useState<SettingSource>('default');
   const [model, setModel] = useState('claude-haiku-4-5-20251001');
+  const [modelSource, setModelSource] = useState<SettingSource>('default');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -26,9 +50,13 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         .then((r) => r.json())
         .then((data) => {
           setHasKey(data.hasApiKey);
+          setApiKeySource(data.apiKeySource || 'default');
           setBaseUrl(data.baseURL || '');
+          setBaseUrlSource(data.baseURLSource || 'default');
           setModel(data.model || 'claude-haiku-4-5-20251001');
+          setModelSource(data.modelSource || 'default');
         });
+      setApiKey('');
       setSaved(false);
     }
   }, [isOpen]);
@@ -84,11 +112,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             <div className="flex items-center gap-2 mb-3">
               <Key size={16} className="text-accent-cyan" />
               <h3 className="text-sm font-medium text-[var(--text-primary)]">Claude API Key</h3>
-              {hasKey && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                  Configured
-                </span>
-              )}
+              {hasKey && <SourceBadge source={apiKeySource} />}
             </div>
             <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
               Required for AI-powered URL categorization. Without it, basic heuristic categorization is used.
@@ -117,6 +141,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             <div className="flex items-center gap-2 mb-3">
               <Globe size={16} className="text-accent-cyan" />
               <h3 className="text-sm font-medium text-[var(--text-primary)]">Base URL</h3>
+              <SourceBadge source={baseUrlSource} />
             </div>
             <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
               Custom API endpoint for proxies or compatible services. Leave empty to use the default Anthropic endpoint.
@@ -136,6 +161,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             <div className="flex items-center gap-2 mb-3">
               <Cpu size={16} className="text-accent-cyan" />
               <h3 className="text-sm font-medium text-[var(--text-primary)]">Model</h3>
+              <SourceBadge source={modelSource} />
             </div>
             <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
               Choose the Claude model for AI categorization. Faster models are cheaper but less accurate.

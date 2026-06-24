@@ -11,11 +11,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ai-nav/shared": "workspace:*",
     "@ai-nav/db": "workspace:*",
+    "@ai-nav/shared": "workspace:*",
     "@anthropic-ai/sdk": "^0.39.0",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.21.0"
   },
   "devDependencies": {
