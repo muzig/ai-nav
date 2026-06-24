@@ -29,6 +29,7 @@ export default {
         'slide-up': 'slideUp 0.5s ease-out forwards',
         'glow-pulse': 'glowPulse 3s ease-in-out infinite',
         'float': 'float 6s ease-in-out infinite',
+        'pulse-dot': 'pulse-dot 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -46,6 +47,10 @@ export default {
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        'pulse-dot': {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.5', transform: 'scale(0.85)' },
         },
       },
     },

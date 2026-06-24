@@ -12,7 +12,7 @@ export function getEffectiveSetting(key: string): { value: string; source: 'db' 
   // Env var mapping with aliases
   const envKeys: string[] = [];
   if (key === 'claude_api_key') {
-    envKeys.push('CLAUDE_API_KEY', 'ANTHROPIC_API_KEY');
+    envKeys.push('CLAUDE_API_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN');
   } else if (key === 'base_url') {
     envKeys.push('BASE_URL', 'ANTHROPIC_BASE_URL');
   } else if (key === 'model') {

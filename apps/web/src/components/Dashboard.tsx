@@ -18,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAI } from '../hooks/useAI';
+import { useHealthCheck } from '../hooks/useHealthCheck';
 import CategoryGroup from './CategoryGroup';
 import SortableCategoryGroup from './SortableCategoryGroup';
 import NavCard from './NavCard';
@@ -45,6 +46,7 @@ export default function Dashboard() {
   } = useBookmarks();
 
   const { autoGroup, autoGrouping } = useAI();
+  const healthStatus = useHealthCheck();
   const [autoGroupResult, setAutoGroupResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [addUrlOpen, setAddUrlOpen] = useState(false);
@@ -225,7 +227,25 @@ export default function Dashboard() {
               <Sparkles size={18} className="text-accent-cyan" />
             </div>
             <div>
-              <h1 className="text-lg font-display font-bold text-gradient">AI Nav</h1>
+              <h1 className="text-lg font-display font-bold text-gradient flex items-center gap-2">
+                AI Nav
+                <span
+                  className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                    healthStatus === 'online'
+                      ? 'bg-green-400 animate-pulse-dot'
+                      : healthStatus === 'offline'
+                        ? 'bg-red-400'
+                        : 'bg-amber-400 animate-pulse-dot'
+                  }`}
+                  title={
+                    healthStatus === 'online'
+                      ? 'Backend online'
+                      : healthStatus === 'offline'
+                        ? 'Backend offline'
+                        : 'Checking...'
+                  }
+                />
+              </h1>
               <p className="text-[10px] text-[var(--text-muted)] -mt-0.5 tracking-wider uppercase">
                 Smart Navigation
               </p>
