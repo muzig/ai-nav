@@ -2,6 +2,7 @@
   "name": "ai-nav",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "turbo dev",
     "dev:web": "turbo dev --filter=@ai-nav/web",
