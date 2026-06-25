@@ -26,6 +26,13 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve frontend static files (production)
+const webDist = resolve(__dirname, '../../../apps/web/dist');
+app.use(express.static(webDist));
+app.get('*', (_req, res) => {
+  res.sendFile(resolve(webDist, 'index.html'));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 AI Nav server running on http://0.0.0.0:${PORT}`);
 });

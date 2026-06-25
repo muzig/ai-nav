@@ -1,0 +1,9 @@
+node_modules
+.git
+.env
+*.md
+.github
+.turbo
+apps/web/dist
+packages/db/data
+**/dist
