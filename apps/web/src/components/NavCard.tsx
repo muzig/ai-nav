@@ -54,14 +54,14 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="glass glass-hover block p-4 cursor-pointer no-underline h-[120px]"
+        className="glass glass-hover block p-4 cursor-pointer no-underline min-h-[100px] sm:h-[120px]"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
         {/* Drag handle - only in edit mode */}
         {!isReadonly && (
           <div
-            className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
+            className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
             {...listeners}
           >
             <GripVertical size={14} />
@@ -71,9 +71,7 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
         {/* Action buttons - only in edit mode */}
         {!isReadonly && (
           <div
-            className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${
-              showActions ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${showActions ? 'sm:opacity-100' : 'sm:opacity-0'} opacity-100`}
           >
             <button
               onClick={(e) => {
@@ -123,7 +121,7 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
               </h3>
               <ExternalLink
                 size={12}
-                className="flex-shrink-0 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
+                className="flex-shrink-0 text-[var(--text-muted)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
               />
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">

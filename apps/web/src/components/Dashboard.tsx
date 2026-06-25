@@ -213,14 +213,14 @@ export default function Dashboard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Floating orbs */}
       <div className="orb w-[400px] h-[400px] bg-accent-cyan/5 top-[-100px] left-[-100px]" />
       <div className="orb w-[300px] h-[300px] bg-accent-violet/5 bottom-[10%] right-[-50px]" style={{ animationDelay: '-3s' }} />
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-cyan/30 to-accent-violet/30 flex items-center justify-center">
@@ -253,9 +253,9 @@ export default function Dashboard() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             {/* Inline search */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-white/5 border border-white/5 focus-within:border-accent-cyan/30 transition-all w-48 sm:w-64">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-white/5 border border-white/5 focus-within:border-accent-cyan/30 transition-all w-36 sm:w-64">
               <Search size={14} className="text-[var(--text-muted)] flex-shrink-0" />
               <input
                 ref={searchRef}
@@ -354,7 +354,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-32">
             <Loader2 size={24} className="animate-spin text-accent-cyan" />
