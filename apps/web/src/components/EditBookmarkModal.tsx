@@ -10,13 +10,7 @@ interface EditBookmarkModalProps {
   onSave: (id: number, data: Partial<Bookmark>) => void;
 }
 
-export default function EditBookmarkModal({
-  isOpen,
-  bookmark,
-  categories,
-  onClose,
-  onSave,
-}: EditBookmarkModalProps) {
+export default function EditBookmarkModal({ isOpen, bookmark, categories, onClose, onSave }: EditBookmarkModalProps) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -45,86 +39,40 @@ export default function EditBookmarkModal({
   if (!isOpen || !bookmark) return null;
 
   return (
-    <div className="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="glass-strong w-full max-w-md animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-          <h2 className="text-lg font-display font-semibold text-[var(--text-primary)]">
-            Edit Bookmark
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <X size={18} />
-          </button>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal__header">
+          <span className="modal__title">edit bookmark</span>
+          <button onClick={onClose} className="btn-icon"><X size={13} /></button>
         </div>
-
-        <div className="p-6 space-y-4">
+        <div className="modal__body space-y-3">
           <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-1.5">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30"
-            />
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">title</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]" />
           </div>
           <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-1.5">URL</label>
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30"
-            />
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">url</label>
+            <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]" />
           </div>
           <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-1.5">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30 resize-none"
-            />
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">description</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)] resize-none" />
           </div>
           <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-1.5">Category</label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30 appearance-none"
-            >
-              <option value="">Uncategorized</option>
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">category</label>
+            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]">
+              <option value="">uncategorized</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
         </div>
-
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-white/5">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!title.trim() || !url.trim()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
-            style={{
-              background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
-              border: '1px solid rgba(0, 212, 255, 0.3)',
-            }}
-          >
-            <Save size={14} />
-            Save
+        <div className="modal__footer">
+          <button onClick={onClose} className="btn">cancel</button>
+          <button onClick={handleSave} disabled={!title.trim() || !url.trim()} className="btn btn--primary disabled:opacity-40">
+            <Save size={12} />
+            <span>save</span>
           </button>
         </div>
       </div>

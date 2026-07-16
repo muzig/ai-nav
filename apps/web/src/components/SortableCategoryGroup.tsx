@@ -34,7 +34,7 @@ export default function SortableCategoryGroup({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : undefined,
+    zIndex: isDragging ? 'var(--z-drag)' : undefined,
   };
 
   return (

@@ -1,0 +1,57 @@
+/* Hallmark · genre: atmospheric · macrostructure: Split Studio · theme: custom
+ * Split layout — sidebar (categories) + main (bookmarks)
+ * tokens: dark canvas · phosphor-green accent · Geist Mono + Geist
+ */
+
+:root {
+  /* Paper — dark canvas, neutral cool */
+  --color-paper:    oklch(13%  0.006 250);
+  --color-paper-2:  oklch(17%  0.008 250);
+  --color-paper-3:  oklch(22%  0.010 250);
+
+  /* Ink — light text */
+  --color-ink:      oklch(92%  0.004 250);
+  --color-ink-2:    oklch(72%  0.006 240);
+  --color-ink-3:    oklch(52%  0.008 240);
+
+  /* Rules and borders */
+  --color-rule:     oklch(26%  0.008 250);
+  --color-rule-2:   oklch(20%  0.006 250);
+
+  /* Accent — phosphor green (terminal vibe) */
+  --color-accent:   oklch(82%  0.18 145);
+  --color-accent-2: oklch(72%  0.16 145);
+  --color-focus:    oklch(82%  0.18 145);
+
+  /* Status */
+  --color-success:  oklch(72%  0.18 145);
+  --color-error:    oklch(65%  0.20 25);
+  --color-warning:  oklch(78%  0.14 85);
+
+  /* Typography — terminal-flavored */
+  --font-display:   "Geist", system-ui, -apple-system, sans-serif;
+  --font-body:      "Geist", system-ui, -apple-system, sans-serif;
+  --font-outlier:   "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale */
+  --text-xs:    0.75rem;     /* 12px   */
+  --text-sm:    0.875rem;    /* 14px   */
+  --text-base:  1rem;        /* 16px   */
+  --text-md:    1.25rem;     /* 20px   */
+  --text-lg:    1.75rem;     /* 28px   */
+  --text-xl:    2.5rem;      /* 40px   */
+
+  /* Spacing — 4pt scale */
+  --space-3xs:  0.25rem;
+  --space-2xs:  0.5rem;
+  --space-xs:   0.75rem;
+  --space-sm:   1rem;
+  --space-md:   1.5rem;
+  --space-lg:   2rem;
+  --space-xl:   3rem;
+
+  /* Motion */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short:  120ms;
+  --dur-medium: 200ms;
+}

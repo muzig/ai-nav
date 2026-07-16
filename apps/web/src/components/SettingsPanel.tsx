@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Key, Globe, Cpu, Loader2, Check, AlertCircle, Server } from 'lucide-react';
+import { X, Loader2, Check, Server } from 'lucide-react';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -14,33 +14,11 @@ const MODEL_OPTIONS = [
   { value: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
 ];
 
-function SourceBadge({ source }: { source: SettingSource }) {
-  if (source === 'default') return null;
-  return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full border ${
-        source === 'env'
-          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-          : 'bg-green-500/10 text-green-400 border-green-500/20'
-      }`}
-    >
-      {source === 'env' ? (
-        <span className="flex items-center gap-1"><Server size={10} /> Environment</span>
-      ) : (
-        'Configured'
-      )}
-    </span>
-  );
-}
-
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState(false);
-  const [apiKeySource, setApiKeySource] = useState<SettingSource>('default');
   const [baseUrl, setBaseUrl] = useState('');
-  const [baseUrlSource, setBaseUrlSource] = useState<SettingSource>('default');
   const [model, setModel] = useState('claude-haiku-4-5-20251001');
-  const [modelSource, setModelSource] = useState<SettingSource>('default');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -50,11 +28,8 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         .then((r) => r.json())
         .then((data) => {
           setHasKey(data.hasApiKey);
-          setApiKeySource(data.apiKeySource || 'default');
           setBaseUrl(data.baseURL || '');
-          setBaseUrlSource(data.baseURLSource || 'default');
           setModel(data.model || 'claude-haiku-4-5-20251001');
-          setModelSource(data.modelSource || 'default');
         });
       setApiKey('');
       setSaved(false);
@@ -78,7 +53,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       setApiKey('');
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      console.error('Failed to save settings:', err);
+      console.error('Failed to save:', err);
     } finally {
       setSaving(false);
     }
@@ -87,136 +62,66 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="glass-strong w-full max-w-md animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-          <h2 className="text-lg font-display font-semibold text-[var(--text-primary)]">
-            Settings
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <X size={18} />
-          </button>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal__header">
+          <span className="modal__title">settings</span>
+          <button onClick={onClose} className="btn-icon"><X size={13} /></button>
         </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* API Key section */}
+        <div className="modal__body space-y-4">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Key size={16} className="text-accent-cyan" />
-              <h3 className="text-sm font-medium text-[var(--text-primary)]">Claude API Key</h3>
-              {hasKey && <SourceBadge source={apiKeySource} />}
-            </div>
-            <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-              Required for AI-powered URL categorization. Without it, basic heuristic categorization is used.
-              Get your key at{' '}
-              <a
-                href="https://console.anthropic.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent-cyan hover:underline"
-              >
-                console.anthropic.com
-              </a>
-            </p>
-
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">
+              claude api key {hasKey && <span className="text-[var(--color-accent)] ml-1">[set]</span>}
+            </label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-ant-api..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-accent-cyan/30"
+              placeholder="sk-ant-api…"
+              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]"
             />
           </div>
-
-          {/* Base URL section */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Globe size={16} className="text-accent-cyan" />
-              <h3 className="text-sm font-medium text-[var(--text-primary)]">Base URL</h3>
-              <SourceBadge source={baseUrlSource} />
-            </div>
-            <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-              Custom API endpoint for proxies or compatible services. Leave empty to use the default Anthropic endpoint.
-            </p>
-
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">base url</label>
             <input
               type="url"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://api.anthropic.com"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-accent-cyan/30"
+              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]"
             />
           </div>
-
-          {/* Model section */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Cpu size={16} className="text-accent-cyan" />
-              <h3 className="text-sm font-medium text-[var(--text-primary)]">Model</h3>
-              <SourceBadge source={modelSource} />
-            </div>
-            <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-              Choose the Claude model for AI categorization. Faster models are cheaper but less accurate.
-            </p>
-
+            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">model</label>
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-accent-cyan/30 appearance-none cursor-pointer"
+              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]"
             >
               {MODEL_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-[var(--bg-primary)]">
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
-
-          {/* Save button */}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
-            style={{
-              background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
-              border: '1px solid rgba(0, 212, 255, 0.3)',
-            }}
-          >
-            {saving ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : saved ? (
-              <Check size={14} className="text-green-400" />
-            ) : (
-              'Save Settings'
-            )}
-          </button>
-
-          {/* Keyboard shortcuts */}
-          <div>
-            <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">Keyboard Shortcuts</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--text-secondary)]">Search bookmarks</span>
-                <kbd className="text-xs bg-white/5 px-2 py-1 rounded text-[var(--text-muted)]">
-                  ⌘ K
-                </kbd>
+          <div className="pt-2 border-t border-[var(--color-rule)]">
+            <div className="text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-2">shortcuts</div>
+            <div className="space-y-1 text-[11px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-ink-2)]">search</span>
+                <kbd className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)] border border-[var(--color-rule)] px-1.5 py-0.5">⌘K</kbd>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--text-secondary)]">Add bookmarks</span>
-                <kbd className="text-xs bg-white/5 px-2 py-1 rounded text-[var(--text-muted)]">
-                  ⌘ N
-                </kbd>
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-ink-2)]">add</span>
+                <kbd className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)] border border-[var(--color-rule)] px-1.5 py-0.5">⌘N</kbd>
               </div>
             </div>
           </div>
+        </div>
+        <div className="modal__footer">
+          <button onClick={handleSave} disabled={saving} className="btn btn--primary disabled:opacity-40">
+            {saving ? <Loader2 size={12} className="animate-spin" /> : saved ? <Check size={12} /> : null}
+            <span>{saving ? 'saving…' : saved ? 'saved' : 'save'}</span>
+          </button>
         </div>
       </div>
     </div>

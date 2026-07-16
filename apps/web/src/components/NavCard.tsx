@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ExternalLink, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -15,8 +14,6 @@ interface NavCardProps {
 }
 
 export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDelete }: NavCardProps) {
-  const [showActions, setShowActions] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const isReadonly = mode === 'readonly';
 
   const {
@@ -32,7 +29,7 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : undefined,
+    zIndex: isDragging ? 'var(--z-drag)' : undefined,
   };
 
   const domain = (() => {
@@ -47,39 +44,72 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
     <div
       ref={setNodeRef}
       style={style}
-      className="stagger-child group relative"
+      className="group relative"
       {...attributes}
     >
       <a
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="glass glass-hover block p-4 cursor-pointer no-underline min-h-[100px] sm:h-[120px]"
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
+        className="card flex items-start gap-3"
       >
-        {/* Drag handle - only in edit mode */}
+        {/* Drag handle — always visible on touch */}
         {!isReadonly && (
           <div
-            className="absolute top-3 left-3 p-1 rounded text-[var(--text-muted)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-white/10"
+            className="drag-handle flex-shrink-0 mt-0.5"
             {...listeners}
           >
             <GripVertical size={14} />
           </div>
         )}
 
-        {/* Action buttons - only in edit mode */}
+        {/* Favicon */}
+        <div className="w-8 h-8 rounded-md bg-[var(--color-paper-3)] flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {bookmark.favicon ? (
+            <img
+              src={bookmark.favicon}
+              alt=""
+              className="w-5 h-5 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-5 h-5 rounded-sm bg-[var(--color-rule)]" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-[var(--color-ink)] truncate font-[var(--font-display)]">
+              {bookmark.title}
+            </h3>
+            <ExternalLink
+              size={12}
+              className="flex-shrink-0 text-[var(--color-ink-3)]"
+            />
+          </div>
+          <p className="text-xs text-[var(--color-ink-3)] mt-0.5 truncate font-[family-name:var(--font-outlier)]">
+            {domain}
+          </p>
+          {bookmark.description && (
+            <p className="text-xs text-[var(--color-ink-2)] mt-1.5 line-clamp-2 leading-relaxed">
+              {bookmark.description}
+            </p>
+          )}
+        </div>
+
+        {/* Action buttons — visible on touch, hover on pointer */}
         {!isReadonly && (
-          <div
-            className={`absolute top-3 right-3 flex gap-1 transition-opacity duration-200 ${showActions ? 'sm:opacity-100' : 'sm:opacity-0'} opacity-100`}
-          >
+          <div className="action-group flex-shrink-0">
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onEdit(bookmark);
               }}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-colors"
+              className="btn-icon"
               title="Edit"
             >
               <Pencil size={14} />
@@ -90,48 +120,13 @@ export default function NavCard({ bookmark, index, mode = 'edit', onEdit, onDele
                 e.stopPropagation();
                 onDelete(bookmark.id);
               }}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+              className="btn-icon hover:text-[var(--color-error)] hover:bg-[oklch(65%_0.20_25_/_0.1)]"
               title="Delete"
             >
               <Trash2 size={14} />
             </button>
           </div>
         )}
-
-        <div className="flex items-start gap-3">
-          {/* Favicon */}
-          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {bookmark.favicon && !imgError ? (
-              <img
-                src={bookmark.favicon}
-                alt=""
-                className="w-6 h-6 object-contain"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-accent-cyan/30 to-accent-violet/30" />
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-[var(--text-primary)] truncate font-display">
-                {bookmark.title}
-              </h3>
-              <ExternalLink
-                size={12}
-                className="flex-shrink-0 text-[var(--text-muted)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-              />
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
-              {domain}
-            </p>
-            <p className="text-xs text-[var(--text-muted)] mt-1.5 line-clamp-2 leading-relaxed">
-              {bookmark.description || ' '}
-            </p>
-          </div>
-        </div>
       </a>
     </div>
   );

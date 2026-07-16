@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, X, ArrowRight, Command } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 import type { Bookmark } from '../hooks/useBookmarks';
 
 interface SearchBarProps {
@@ -45,33 +45,33 @@ export default function SearchBar({ bookmarks, isOpen, onClose }: SearchBarProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 modal-backdrop flex items-start justify-center pt-[15vh]" onClick={onClose}>
+    <div className="fixed inset-0 z-[var(--z-modal)] modal-backdrop flex items-start justify-center pt-[15vh]" onClick={onClose}>
       <div
-        className="glass-strong w-full max-w-xl mx-4 overflow-hidden animate-slide-up"
+        className="bg-[var(--color-paper-2)] border border-[var(--color-rule)] rounded-lg w-full max-w-xl mx-4 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-          <Search size={18} className="text-[var(--text-muted)] flex-shrink-0" />
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--color-rule)]">
+          <Search size={14} className="text-[var(--color-ink-3)] flex-shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search bookmarks..."
-            className="flex-1 bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm outline-none font-body"
+            placeholder="Search bookmarks…"
+            className="flex-1 bg-transparent text-[var(--color-ink)] placeholder-[var(--color-ink-3)] text-xs outline-none font-[family-name:var(--font-body)]"
           />
-          <kbd className="hidden sm:flex items-center gap-1 text-[10px] text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">
+          <kbd className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--color-ink-3)] bg-[var(--color-paper-3)] px-1.5 py-0.5 rounded">
             ESC
           </kbd>
         </div>
 
         {/* Results */}
         {query.trim() && (
-          <div className="max-h-[300px] overflow-y-auto p-2">
+          <div className="max-h-[300px] overflow-y-auto p-1.5">
             {results.length === 0 ? (
-              <div className="text-center py-8 text-[var(--text-muted)] text-sm">
-                No bookmarks found for "{query}"
+              <div className="text-center py-6 text-[var(--color-ink-3)] text-xs">
+                No results for "{query}"
               </div>
             ) : (
               results.map((bm) => (
@@ -81,27 +81,27 @@ export default function SearchBar({ bookmarks, isOpen, onClose }: SearchBarProps
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group no-underline"
+                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-[var(--color-paper-3)] transition-colors group no-underline"
                 >
                   <img
                     src={bm.favicon}
                     alt=""
-                    className="w-5 h-5 object-contain rounded flex-shrink-0"
+                    className="w-4 h-4 object-contain rounded flex-shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-[var(--text-primary)] truncate font-medium">
+                    <div className="text-xs text-[var(--color-ink)] truncate font-medium">
                       {bm.title}
                     </div>
-                    <div className="text-xs text-[var(--text-muted)] truncate">
+                    <div className="text-[10px] text-[var(--color-ink-3)] truncate font-[family-name:var(--font-outlier)]">
                       {bm.url}
                     </div>
                   </div>
                   <ArrowRight
-                    size={14}
-                    className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                    size={12}
+                    className="text-[var(--color-ink-3)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                   />
                 </a>
               ))
@@ -111,8 +111,8 @@ export default function SearchBar({ bookmarks, isOpen, onClose }: SearchBarProps
 
         {/* Hint when empty */}
         {!query.trim() && (
-          <div className="px-4 py-6 text-center text-[var(--text-muted)] text-sm">
-            Start typing to search your bookmarks
+          <div className="px-4 py-5 text-center text-[var(--color-ink-3)] text-xs">
+            Start typing to search
           </div>
         )}
       </div>

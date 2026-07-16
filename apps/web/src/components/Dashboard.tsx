@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Search, Plus, Settings, Sparkles, Command, Loader2, Eye, Pencil, Wand2, Check, AlertCircle } from 'lucide-react';
+import { Search, Plus, Settings, Loader2, Eye, Pencil, Wand2, Check, AlertCircle, X, Trash2, ExternalLink, GripVertical, Menu } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -16,12 +16,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAI } from '../hooks/useAI';
 import { useHealthCheck } from '../hooks/useHealthCheck';
-import CategoryGroup from './CategoryGroup';
-import SortableCategoryGroup from './SortableCategoryGroup';
-import NavCard from './NavCard';
 import AddUrlModal from './AddUrlModal';
 import EditBookmarkModal from './EditBookmarkModal';
 import SettingsPanel from './SettingsPanel';
@@ -39,10 +38,8 @@ export default function Dashboard() {
     updateBookmark,
     deleteBookmark,
     addCategory,
-    updateCategory,
     deleteCategory,
     reorderBookmarks,
-    reorderCategories,
   } = useBookmarks();
 
   const { autoGroup, autoGrouping } = useAI();
@@ -52,11 +49,14 @@ export default function Dashboard() {
   const [addUrlOpen, setAddUrlOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | 'all' | 'uncategorized'>('all');
   const [mode, setMode] = useState<AppMode>(() => {
     const saved = localStorage.getItem('ai-nav-mode');
     return (saved === 'readonly' || saved === 'edit') ? saved : 'edit';
   });
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -64,14 +64,12 @@ export default function Dashboard() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         searchRef.current?.focus();
       }
-      // Only allow Cmd+N in edit mode
       if ((e.metaKey || e.ctrlKey) && e.key === 'n' && mode === 'edit') {
         e.preventDefault();
         setAddUrlOpen(true);
@@ -81,12 +79,16 @@ export default function Dashboard() {
     return () => window.removeEventListener('keydown', handler);
   }, [mode]);
 
-  // Filter grouped bookmarks by search query
   const filteredGrouped = useMemo(() => {
-    if (!searchQuery.trim()) return grouped;
-    const q = searchQuery.toLowerCase();
-    return grouped
-      .map((group) => ({
+    let result = grouped;
+    if (activeCategoryId === 'uncategorized') {
+      result = result.filter(g => g.category === null);
+    } else if (activeCategoryId !== 'all') {
+      result = result.filter(g => g.category?.id === activeCategoryId);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.map(group => ({
         ...group,
         bookmarks: group.bookmarks.filter(
           (b) =>
@@ -94,9 +96,13 @@ export default function Dashboard() {
             b.url.toLowerCase().includes(q) ||
             b.description.toLowerCase().includes(q)
         ),
-      }))
-      .filter((group) => group.bookmarks.length > 0);
-  }, [grouped, searchQuery]);
+      })).filter(group => group.bookmarks.length > 0);
+    }
+    return result;
+  }, [grouped, searchQuery, activeCategoryId]);
+
+  const allBookmarksCount = bookmarks.length;
+  const uncategorizedCount = bookmarks.filter(b => !b.category_id).length;
 
   const handleConfirmBookmarks = async (
     items: Array<{ title: string; url: string; description: string; favicon: string; category_id: number | null }>
@@ -133,7 +139,6 @@ export default function Dashboard() {
 
   const isReadonly = mode === 'readonly';
 
-  // DnD handlers
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as number);
   }, []);
@@ -143,28 +148,6 @@ export default function Dashboard() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const activeStr = String(active.id);
-    const overStr = String(over.id);
-
-    // Category reorder
-    if (activeStr.startsWith('cat-') && overStr.startsWith('cat-')) {
-      const activeCatId = Number(activeStr.replace('cat-', ''));
-      const overCatId = Number(overStr.replace('cat-', ''));
-      const catIds = filteredGrouped
-        .map((g) => g.category?.id)
-        .filter((id): id is number => id != null);
-      const oldIndex = catIds.indexOf(activeCatId);
-      const newIndex = catIds.indexOf(overCatId);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newOrder = [...catIds];
-        newOrder.splice(oldIndex, 1);
-        newOrder.splice(newIndex, 0, activeCatId);
-        reorderCategories(newOrder);
-      }
-      return;
-    }
-
-    // Bookmark reorder
     const activeId = active.id as number;
     const overId = over.id as number;
 
@@ -178,7 +161,6 @@ export default function Dashboard() {
     if (!activeGroup || !overGroup) return;
 
     if (activeGroup === overGroup) {
-      // Same category reorder
       const ids = activeGroup.bookmarks.map((b) => b.id);
       const oldIndex = ids.indexOf(activeId);
       const newIndex = ids.indexOf(overId);
@@ -188,19 +170,8 @@ export default function Dashboard() {
         newOrder.splice(newIndex, 0, activeId);
         reorderBookmarks(activeGroup.category?.id ?? null, newOrder);
       }
-    } else {
-      // Cross-category move
-      const sourceIds = activeGroup.bookmarks
-        .map((b) => b.id)
-        .filter((id) => id !== activeId);
-      const targetIds = overGroup.bookmarks.map((b) => b.id);
-      const overIndex = targetIds.indexOf(overId);
-      targetIds.splice(overIndex, 0, activeId);
-
-      reorderBookmarks(activeGroup.category?.id ?? null, sourceIds);
-      reorderBookmarks(overGroup.category?.id ?? null, targetIds);
     }
-  }, [filteredGrouped, reorderBookmarks, reorderCategories]);
+  }, [filteredGrouped, reorderBookmarks]);
 
   const activeBookmark = activeId
     ? bookmarks.find((b) => b.id === activeId)
@@ -213,225 +184,213 @@ export default function Dashboard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Floating orbs */}
-      <div className="orb w-[400px] h-[400px] bg-accent-cyan/5 top-[-100px] left-[-100px]" />
-      <div className="orb w-[300px] h-[300px] bg-accent-violet/5 bottom-[10%] right-[-50px]" style={{ animationDelay: '-3s' }} />
+    <div className="app">
+      {/* HEADER */}
+      <header className="app__header">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="btn-icon md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu size={14} />
+          </button>
+          <span className="font-[family-name:var(--font-outlier)] text-[14px] font-medium text-[var(--color-ink)] tracking-tight">
+            ai.nav
+          </span>
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            healthStatus === 'online' ? 'bg-[var(--color-accent)]' :
+            healthStatus === 'offline' ? 'bg-[var(--color-error)]' : 'bg-[var(--color-warning)]'
+          }`} />
+        </div>
 
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-cyan/30 to-accent-violet/30 flex items-center justify-center">
-              <Sparkles size={18} className="text-accent-cyan" />
-            </div>
-            <div>
-              <h1 className="text-lg font-display font-bold text-gradient flex items-center gap-2">
-                AI Nav
-                <span
-                  className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
-                    healthStatus === 'online'
-                      ? 'bg-green-400 animate-pulse-dot'
-                      : healthStatus === 'offline'
-                        ? 'bg-red-400'
-                        : 'bg-amber-400 animate-pulse-dot'
-                  }`}
-                  title={
-                    healthStatus === 'online'
-                      ? 'Backend online'
-                      : healthStatus === 'offline'
-                        ? 'Backend offline'
-                        : 'Checking...'
-                  }
-                />
-              </h1>
-              <p className="text-[10px] text-[var(--text-muted)] -mt-0.5 tracking-wider uppercase">
-                Smart Navigation
-              </p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {/* Inline search */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-white/5 border border-white/5 focus-within:border-accent-cyan/30 transition-all w-36 sm:w-64">
-              <Search size={14} className="text-[var(--text-muted)] flex-shrink-0" />
+        <div className="flex items-center gap-2">
+          <div className="header-search">
+            <div className="input w-48 sm:w-64">
+              <Search size={13} className="text-[var(--color-ink-3)] flex-shrink-0" />
               <input
                 ref={searchRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className="flex-1 bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm outline-none min-w-0"
+                placeholder="search…"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] flex-shrink-0"
-                >
-                  ×
+              {searchQuery ? (
+                <button onClick={() => setSearchQuery('')} className="text-[var(--color-ink-3)] hover:text-[var(--color-ink)]">
+                  <X size={12} />
                 </button>
+              ) : (
+                <kbd>⌘K</kbd>
               )}
-              <kbd className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded flex-shrink-0">
-                <Command size={10} />K
-              </kbd>
             </div>
-
-            {/* Mode toggle */}
-            <button
-              onClick={toggleMode}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
-                isReadonly
-                  ? 'text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
-              }`}
-              title={isReadonly ? 'Switch to edit mode' : 'Switch to read-only mode'}
-            >
-              {isReadonly ? <Pencil size={14} /> : <Eye size={14} />}
-              <span className="hidden sm:inline">{isReadonly ? 'Edit' : 'Read Only'}</span>
-            </button>
-
-            {/* Add button - only in edit mode */}
-            {!isReadonly && (
-              <button
-                onClick={() => setAddUrlOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(167, 139, 250, 0.15))',
-                  border: '1px solid rgba(0, 212, 255, 0.25)',
-                }}
-              >
-                <Plus size={14} />
-                <span className="hidden sm:inline">Add URLs</span>
-              </button>
-            )}
-
-            {/* AI Auto Group button - only in edit mode */}
-            {!isReadonly && (
-              <button
-                onClick={handleAutoGroup}
-                disabled={autoGrouping}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(255, 106, 157, 0.15))',
-                  border: '1px solid rgba(167, 139, 250, 0.3)',
-                }}
-                title="AI auto-group uncategorized bookmarks"
-              >
-                {autoGrouping ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Wand2 size={14} />
-                )}
-                <span className="hidden sm:inline">{autoGrouping ? 'Grouping...' : 'AI Group'}</span>
-              </button>
-            )}
-
-            {/* Toast notification for auto-group result */}
-            {autoGroupResult && (
-              <div
-                className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium animate-slide-up glass-strong ${
-                  autoGroupResult.type === 'success' ? 'text-green-400' : 'text-red-400'
-                }`}
-              >
-                {autoGroupResult.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
-                {autoGroupResult.message}
-              </div>
-            )}
-
-            {/* Settings - only in edit mode */}
-            {!isReadonly && (
-              <button
-                onClick={() => setSettingsOpen(true)}
-                className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
-              >
-                <Settings size={18} />
-              </button>
-            )}
           </div>
+
+          {/* Mobile search button */}
+          <button
+            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            className="btn-icon md:hidden"
+            aria-label="Search"
+          >
+            <Search size={14} />
+          </button>
+
+          <button onClick={toggleMode} className="btn btn--ghost" title={isReadonly ? 'Edit mode' : 'Read mode'}>
+            {isReadonly ? <Pencil size={13} /> : <Eye size={13} />}
+          </button>
+
+          {!isReadonly && (
+            <button onClick={() => setAddUrlOpen(true)} className="btn btn--primary">
+              <Plus size={13} />
+              <span>add</span>
+            </button>
+          )}
+
+          {!isReadonly && (
+            <button
+              onClick={handleAutoGroup}
+              disabled={autoGrouping}
+              className="btn hidden sm:inline-flex"
+              title="AI auto-group"
+            >
+              {autoGrouping ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
+              <span>{autoGrouping ? '…' : 'ai'}</span>
+            </button>
+          )}
+
+          {!isReadonly && (
+            <button onClick={() => setSettingsOpen(true)} className="btn-icon">
+              <Settings size={15} />
+            </button>
+          )}
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      {/* Mobile search bar */}
+      {mobileSearchOpen && (
+        <div className="md:hidden px-3 py-2 border-b border-[var(--color-rule)] bg-[var(--color-paper)]">
+          <div className="input w-full">
+            <Search size={13} className="text-[var(--color-ink-3)] flex-shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="search…"
+              autoFocus
+            />
+            <button onClick={() => { setMobileSearchOpen(false); setSearchQuery(''); }} className="text-[var(--color-ink-3)]">
+              <X size={12} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SIDEBAR — Categories */}
+      <div
+        className={`app__sidebar-overlay ${sidebarOpen ? 'app__sidebar-overlay--visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <aside className={`app__sidebar ${sidebarOpen ? 'app__sidebar--open' : ''}`}>
+        <div className="flex items-center justify-between md:hidden px-4 py-3 border-b border-[var(--color-rule)]">
+          <span className="font-[family-name:var(--font-outlier)] text-[14px] font-medium text-[var(--color-ink)]">menu</span>
+          <button onClick={() => setSidebarOpen(false)} className="btn-icon" aria-label="Close menu">
+            <X size={14} />
+          </button>
+        </div>
+        <div className="sidebar-label">view</div>
+        <button
+          className={`sidebar-item ${activeCategoryId === 'all' ? 'sidebar-item--active' : ''}`}
+          onClick={() => { setActiveCategoryId('all'); setSidebarOpen(false); }}
+        >
+          <span>all</span>
+          <span className="sidebar-item__count">{allBookmarksCount}</span>
+        </button>
+        <button
+          className={`sidebar-item ${activeCategoryId === 'uncategorized' ? 'sidebar-item--active' : ''}`}
+          onClick={() => { setActiveCategoryId('uncategorized'); setSidebarOpen(false); }}
+        >
+          <span>uncategorized</span>
+          <span className="sidebar-item__count">{uncategorizedCount}</span>
+        </button>
+
+        <div className="sidebar-label" style={{ marginTop: 'var(--space-md)' }}>categories</div>
+        {categories.map((cat) => {
+          const count = bookmarks.filter(b => b.category_id === cat.id).length;
+          return (
+            <button
+              key={cat.id}
+              className={`sidebar-item ${activeCategoryId === cat.id ? 'sidebar-item--active' : ''}`}
+              onClick={() => { setActiveCategoryId(cat.id); setSidebarOpen(false); }}
+            >
+              <span>{cat.name}</span>
+              <span className="sidebar-item__count">{count}</span>
+            </button>
+          );
+        })}
+        {categories.length === 0 && (
+          <div className="px-4 py-2 text-[12px] text-[var(--color-ink-3)] font-[family-name:var(--font-outlier)]">
+            no categories yet
+          </div>
+        )}
+      </aside>
+
+      {/* MAIN — Bookmarks list */}
+      <main className="app__main">
         {loading ? (
-          <div className="flex items-center justify-center py-32">
-            <Loader2 size={24} className="animate-spin text-accent-cyan" />
+          <div className="flex items-center justify-center py-24">
+            <Loader2 size={16} className="animate-spin text-[var(--color-ink-3)]" />
           </div>
         ) : bookmarks.length === 0 ? (
-          /* Empty state */
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-cyan/10 to-accent-violet/10 flex items-center justify-center mb-6 animate-float">
-              <Sparkles size={32} className="text-accent-cyan" />
+          <div className="empty">
+            <div className="badge mb-3">
+              <span>empty</span>
             </div>
-            <h2 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-2">
-              {isReadonly ? 'No Bookmarks Yet' : 'Welcome to AI Nav'}
-            </h2>
-            <p className="text-[var(--text-secondary)] max-w-md mb-8 leading-relaxed">
-              {isReadonly
-                ? 'No bookmarks have been added yet.'
-                : 'Paste a bunch of URLs and let AI organize them into categories automatically. No manual sorting needed.'}
+            <h2 className="empty__title">Welcome to ai.nav</h2>
+            <p className="empty__desc">
+              Paste URLs and AI will organize them into categories automatically. Or start by adding your first bookmark.
             </p>
             {!isReadonly && (
-              <button
-                onClick={() => setAddUrlOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2))',
-                  border: '1px solid rgba(0, 212, 255, 0.3)',
-                }}
-              >
-                <Plus size={16} />
-                Add Your First Bookmarks
+              <button onClick={() => setAddUrlOpen(true)} className="btn btn--primary">
+                <Plus size={12} />
+                <span>add bookmarks</span>
               </button>
             )}
           </div>
+        ) : filteredGrouped.length === 0 ? (
+          <div className="empty">
+            <p className="empty__desc">no matches for "{searchQuery}"</p>
+          </div>
         ) : (
-          /* Bookmarks grouped by category */
-          <SortableContext
-            items={filteredGrouped.map((g) => `cat-${g.category?.id ?? 'uncategorized'}`)}
-            strategy={verticalListSortingStrategy}
-          >
-            {filteredGrouped.map((group, i) => (
-              <SortableCategoryGroup
+          <div>
+            {filteredGrouped.map((group) => (
+              <CategorySection
                 key={group.category?.id ?? 'uncategorized'}
-                id={group.category?.id ?? 'uncategorized'}
-                category={group.category}
                 bookmarks={group.bookmarks}
-                index={i}
+                categoryName={group.category?.name ?? 'Uncategorized'}
                 mode={mode}
                 onEditBookmark={setEditingBookmark}
                 onDeleteBookmark={deleteBookmark}
-                onEditCategory={(cat) => {
-                  const name = prompt('Category name:', cat.name);
-                  if (name?.trim()) updateCategory(cat.id, { name: name.trim() });
-                }}
-                onDeleteCategory={(id) => {
-                  if (confirm('Delete this category? Bookmarks will become uncategorized.')) {
-                    deleteCategory(id);
-                  }
-                }}
-                onAddBookmark={(categoryId) => setAddUrlOpen(true)}
               />
             ))}
-          </SortableContext>
+          </div>
         )}
       </main>
 
       {/* Drag overlay */}
       <DragOverlay>
         {activeBookmark ? (
-          <div className="opacity-90">
-            <NavCard
-              bookmark={activeBookmark}
-              index={0}
-              onEdit={() => {}}
-              onDelete={() => {}}
-            />
+          <div className="opacity-60">
+            <BookmarkCard bookmark={activeBookmark} mode="edit" onEdit={() => {}} onDelete={() => {}} />
           </div>
         ) : null}
       </DragOverlay>
+
+      {/* Toast */}
+      {autoGroupResult && (
+        <div className={`toast ${autoGroupResult.type === 'error' ? 'toast--error' : ''}`}>
+          {autoGroupResult.type === 'success' ? <Check size={12} /> : <AlertCircle size={12} />}
+          <span>{autoGroupResult.message}</span>
+        </div>
+      )}
 
       {/* Modals */}
       <AddUrlModal
@@ -441,7 +400,6 @@ export default function Dashboard() {
         categories={categories}
         onAddCategory={handleAddCategory}
       />
-
       <EditBookmarkModal
         isOpen={!!editingBookmark}
         bookmark={editingBookmark}
@@ -449,12 +407,127 @@ export default function Dashboard() {
         onClose={() => setEditingBookmark(null)}
         onSave={(id, data) => updateBookmark(id, data)}
       />
-
-      <SettingsPanel
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
+      <SettingsPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
     </DndContext>
+  );
+}
+
+/* ===== Bookmark Row (terminal-style data row) ===== */
+
+function BookmarkCard({ bookmark, mode, onEdit, onDelete }: {
+  bookmark: Bookmark;
+  mode: AppMode;
+  onEdit: (b: Bookmark) => void;
+  onDelete: (id: number) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bookmark.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
+  const domain = (() => {
+    try {
+      return new URL(bookmark.url).hostname.replace('www.', '');
+    } catch {
+      return bookmark.url;
+    }
+  })();
+
+  const isReadonly = mode === 'readonly';
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} className="card-item">
+      <a
+        href={bookmark.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="card-item__link"
+      >
+        <div className="card-item__head">
+          <div className="card-item__favicon">
+            {bookmark.favicon ? (
+              <img
+                src={bookmark.favicon}
+                alt=""
+                className="w-4 h-4 object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
+              />
+            ) : (
+              <div className="w-4 h-4 bg-[var(--color-rule)] rounded-sm" />
+            )}
+          </div>
+          <div className="card-item__title">{bookmark.title}</div>
+          {!isReadonly && (
+            <div className="card-item__menu" onClick={(e) => e.preventDefault()}>
+              <div className="card-item__drag" {...listeners}>
+                <GripVertical size={11} />
+              </div>
+            </div>
+          )}
+        </div>
+        {bookmark.description && (
+          <div className="card-item__desc">{bookmark.description}</div>
+        )}
+        <div className="card-item__foot">
+          <span className="card-item__domain">{domain}</span>
+          <div className="card-item__actions">
+            <ExternalLink size={11} className="text-[var(--color-ink-3)]" />
+            {!isReadonly && (
+              <>
+                <button onClick={(e) => { e.preventDefault(); onEdit(bookmark); }} className="btn-icon" title="Edit">
+                  <Pencil size={11} />
+                </button>
+                <button onClick={(e) => { e.preventDefault(); onDelete(bookmark.id); }} className="btn-icon" title="Delete">
+                  <Trash2 size={11} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </a>
+    </div>
+  );
+}
+
+function CategorySection({ bookmarks, categoryName, mode, onEditBookmark, onDeleteBookmark }: {
+  bookmarks: Bookmark[];
+  categoryName: string;
+  mode: AppMode;
+  onEditBookmark: (b: Bookmark) => void;
+  onDeleteBookmark: (id: number) => void;
+}) {
+  return (
+    <section className="mb-8">
+      <div className="flex items-baseline gap-2 mb-3">
+        <h2 className="font-[family-name:var(--font-outlier)] text-[11px] uppercase tracking-[0.12em] text-[var(--color-ink-2)]">
+          {categoryName}
+        </h2>
+        <span className="text-[11px] text-[var(--color-ink-3)]">{bookmarks.length}</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <SortableContext items={bookmarks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+          {bookmarks.map((bm) => (
+            <BookmarkCard
+              key={bm.id}
+              bookmark={bm}
+              mode={mode}
+              onEdit={onEditBookmark}
+              onDelete={onDeleteBookmark}
+            />
+          ))}
+        </SortableContext>
+      </div>
+    </section>
   );
 }

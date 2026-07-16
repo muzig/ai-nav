@@ -56,67 +56,62 @@ export default function CategoryGroup({
 
   const IconComponent = category ? (ICON_MAP[category.icon] || Folder) : Globe;
   const categoryName = category?.name || 'Uncategorized';
-  const categoryColor = category?.color || '#6b7280';
 
   return (
-    <section
-      className="stagger-child mb-10"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
+    <section className="mb-8">
       {/* Category header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          {isDraggable && (
-            <div
-              className="p-1 rounded text-[var(--text-muted)] cursor-grab active:cursor-grabbing hover:bg-white/10 transition-colors"
-              {...dragHandleProps}
-            >
-              <GripVertical size={16} />
-            </div>
-          )}
+      <div className="category-header">
+        {isDraggable && (
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: `${categoryColor}20` }}
+            className="drag-handle"
+            {...dragHandleProps}
           >
-            <IconComponent size={16} style={{ color: categoryColor }} />
+            <GripVertical size={14} />
           </div>
-          <h2 className="text-lg font-display font-semibold text-[var(--text-primary)]">
-            {categoryName}
-          </h2>
-          <span className="text-xs text-[var(--text-muted)] bg-white/5 px-2 py-0.5 rounded-full">
-            {bookmarks.length}
-          </span>
+        )}
+        <div className="category-header__icon">
+          <IconComponent size={14} />
         </div>
+        <h2 className="category-header__title">
+          {categoryName}
+        </h2>
+        <span className="category-header__count">
+          {bookmarks.length}
+        </span>
 
+        {/* Actions */}
         {!isReadonly && (
-          <div className="flex items-center gap-1 relative">
+          <div className="flex items-center gap-1 ml-auto">
             <button
               onClick={() => onAddBookmark(category?.id ?? null)}
-              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+              className="btn-icon"
               title="Add bookmark"
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </button>
 
             {category && (
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+                  className="btn-icon"
                 >
-                  <MoreHorizontal size={16} />
+                  <MoreHorizontal size={14} />
                 </button>
 
                 {showMenu && (
                   <>
-                    <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                    <div className="absolute right-0 top-full mt-1 z-20 glass-strong p-1 min-w-[140px]">
+                    <div
+                      className="fixed inset-0 z-[var(--z-dropdown)]"
+                      onClick={() => setShowMenu(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1 z-[calc(var(--z-dropdown)+1)] bg-[var(--color-paper-3)] border border-[var(--color-rule)] rounded-md p-1 min-w-[140px]">
                       <button
                         onClick={() => {
                           setShowMenu(false);
                           onEditCategory?.(category);
                         }}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--color-ink-2)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] rounded-md transition-colors"
                       >
                         <Pencil size={14} /> Edit
                       </button>
@@ -125,7 +120,7 @@ export default function CategoryGroup({
                           setShowMenu(false);
                           onDeleteCategory?.(category.id);
                         }}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--color-error)] hover:bg-[oklch(65%_0.20_25_/_0.1)] rounded-md transition-colors"
                       >
                         <Trash2 size={14} /> Delete
                       </button>
@@ -138,9 +133,9 @@ export default function CategoryGroup({
         )}
       </div>
 
-      {/* Cards grid */}
+      {/* Cards list — vertical stack, not grid */}
       <SortableContext items={bookmarks.map((b) => b.id)} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="flex flex-col gap-2">
           {bookmarks.map((bm, i) => (
             <NavCard
               key={bm.id}
