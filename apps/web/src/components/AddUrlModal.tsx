@@ -25,27 +25,17 @@ export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, on
   const handleParse = async () => {
     const result = await parseUrls(urlText);
     if (result) {
-      setSuggestions(
-        result.suggestions.map((s) => ({
-          ...s,
-          selected: true,
-          editingCategory: s.suggestedCategory,
-        }))
-      );
+      setSuggestions(result.suggestions.map((s) => ({ ...s, selected: true, editingCategory: s.suggestedCategory })));
       setStep('review');
     }
   };
 
   const toggleSuggestion = (index: number) => {
-    setSuggestions((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, selected: !s.selected } : s))
-    );
+    setSuggestions((prev) => prev.map((s, i) => (i === index ? { ...s, selected: !s.selected } : s)));
   };
 
   const updateCategory = (index: number, category: string) => {
-    setSuggestions((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, editingCategory: category } : s))
-    );
+    setSuggestions((prev) => prev.map((s, i) => (i === index ? { ...s, editingCategory: category } : s)));
   };
 
   const handleConfirm = async () => {
@@ -55,22 +45,13 @@ export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, on
     const items = await Promise.all(
       selected.map(async (s) => {
         let categoryId: number | null = null;
-        const existing = categories.find(
-          (c) => c.name.toLowerCase() === s.editingCategory.toLowerCase()
-        );
-        if (existing) {
-          categoryId = existing.id;
-        } else if (s.editingCategory) {
+        const existing = categories.find((c) => c.name.toLowerCase() === s.editingCategory.toLowerCase());
+        if (existing) categoryId = existing.id;
+        else if (s.editingCategory) {
           const newCat = await onAddCategory(s.editingCategory);
           categoryId = newCat.id;
         }
-        return {
-          title: s.title,
-          url: s.url,
-          description: s.description,
-          favicon: s.favicon,
-          category_id: categoryId,
-        };
+        return { title: s.title, url: s.url, description: s.description, favicon: s.favicon, category_id: categoryId };
       })
     );
 
@@ -86,39 +67,26 @@ export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, on
     onClose();
   };
 
-  const allCategoryNames = [
-    ...new Set([
-      ...categories.map((c) => c.name),
-      ...suggestions.map((s) => s.editingCategory),
-    ]),
-  ];
+  const allCategoryNames = [...new Set([...categories.map((c) => c.name), ...suggestions.map((s) => s.editingCategory)])];
 
   if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={handleClose}>
-      <div className="modal max-w-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">
-          <div className="flex items-center gap-2">
-            <Sparkles size={12} className="text-[var(--color-accent)]" />
-            <span className="modal__title">
-              {step === 'input' ? 'add bookmarks' : 'review'}
-            </span>
-            <span className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)] ml-2">
-              {step === 'review' && `${suggestions.filter(s => s.selected).length}/${suggestions.length} selected`}
-            </span>
-          </div>
+          <span className="modal__title">{step === 'input' ? 'add bookmarks' : 'review'}</span>
           <button onClick={handleClose} className="btn-icon"><X size={13} /></button>
         </div>
-
         <div className="modal__body">
           {step === 'input' ? (
             <>
               <textarea
                 value={urlText}
                 onChange={(e) => setUrlText(e.target.value)}
-                placeholder={`paste urls, one per line:\n\nhttps://github.com\nhttps://docs.anthropic.com\nhttps://news.ycombinator.com`}
-                className="w-full h-44 bg-[var(--color-paper)] border border-[var(--color-rule)] p-3 text-[13px] text-[var(--color-ink)] placeholder-[var(--color-ink-3)] font-[family-name:var(--font-body)] resize-none outline-none focus:border-[var(--color-focus)]"
+                placeholder="paste urls, one per line:"
+                className="input"
+                style={{ height: '180px', fontFamily: 'var(--font-outlier)', resize: 'none' }}
               />
               {error && (
                 <div className="flex items-center gap-2 mt-3 text-[12px] text-[var(--color-error)]">
@@ -130,11 +98,7 @@ export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, on
                 <span className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)]">
                   {urlText.split('\n').filter(l => l.trim()).length} lines
                 </span>
-                <button
-                  onClick={handleParse}
-                  disabled={!urlText.trim() || parsing}
-                  className="btn btn--primary disabled:opacity-40 disabled:cursor-not-allowed"
-                >
+                <button onClick={handleParse} disabled={!urlText.trim() || parsing} className="btn btn--primary disabled:opacity-40">
                   {parsing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                   <span>{parsing ? 'analyzing…' : 'analyze'}</span>
                 </button>
@@ -143,26 +107,15 @@ export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, on
           ) : (
             <div className="space-y-1">
               {suggestions.map((s, i) => (
-                <SuggestionRow
-                  key={i}
-                  suggestion={s}
-                  categories={allCategoryNames}
-                  onToggle={() => toggleSuggestion(i)}
-                  onCategoryChange={(cat) => updateCategory(i, cat)}
-                />
+                <SuggestionRow key={i} suggestion={s} categories={allCategoryNames} onToggle={() => toggleSuggestion(i)} onCategoryChange={(cat) => updateCategory(i, cat)} />
               ))}
             </div>
           )}
         </div>
-
         {step === 'review' && (
           <div className="modal__footer">
-            <button onClick={() => setStep('input')} className="btn">← back</button>
-            <button
-              onClick={handleConfirm}
-              disabled={suggestions.filter(s => s.selected).length === 0}
-              className="btn btn--primary disabled:opacity-40"
-            >
+            <button onClick={() => setStep('input')} className="btn">back</button>
+            <button onClick={handleConfirm} disabled={suggestions.filter(s => s.selected).length === 0} className="btn btn--primary disabled:opacity-40">
               <Check size={12} />
               <span>save {suggestions.filter(s => s.selected).length}</span>
             </button>
@@ -187,31 +140,18 @@ function SuggestionRow({ suggestion, categories, onToggle, onCategoryChange }: {
       <button
         onClick={onToggle}
         className={`w-3.5 h-3.5 border flex items-center justify-center flex-shrink-0 ${
-          suggestion.selected
-            ? 'bg-[var(--color-accent)] border-[var(--color-accent)]'
-            : 'border-[var(--color-rule)]'
+          suggestion.selected ? 'bg-[var(--color-accent)] border-[var(--color-accent)]' : 'border-[var(--color-rule)]'
         }`}
       >
         {suggestion.selected && <Check size={10} className="text-[var(--color-paper)]" />}
       </button>
-
-      <img
-        src={suggestion.favicon}
-        alt=""
-        className="w-4 h-4 object-contain flex-shrink-0"
-        onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
-      />
-
+      <img src={suggestion.favicon} alt="" className="w-4 h-4 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
       <div className="min-w-0 flex-1">
         <div className="text-[12px] text-[var(--color-ink)] truncate">{suggestion.title}</div>
         <div className="text-[10px] text-[var(--color-ink-3)] font-[family-name:var(--font-outlier)] truncate">{suggestion.url}</div>
       </div>
-
       <div className="relative">
-        <button
-          onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-outlier)] px-2 py-1 border border-[var(--color-rule)] text-[var(--color-ink-2)]"
-        >
+        <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-outlier)] px-2 py-1 border border-[var(--color-rule)] text-[var(--color-ink-2)]">
           {suggestion.editingCategory}
           {showDropdown ? <ChevronUp size={9} /> : <ChevronDown size={9} />}
         </button>
@@ -224,9 +164,7 @@ function SuggestionRow({ suggestion, categories, onToggle, onCategoryChange }: {
                   key={cat}
                   onClick={() => { onCategoryChange(cat); setShowDropdown(false); }}
                   className={`block w-full text-left px-2 py-1.5 text-[10px] font-[family-name:var(--font-outlier)] ${
-                    cat === suggestion.editingCategory
-                      ? 'bg-[var(--color-accent)] text-[var(--color-paper)]'
-                      : 'text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)]'
+                    cat === suggestion.editingCategory ? 'bg-[var(--color-accent)] text-[var(--color-paper)]' : 'text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)]'
                   }`}
                 >
                   {cat}
@@ -252,20 +190,9 @@ function SuggestionRow({ suggestion, categories, onToggle, onCategoryChange }: {
           </>
         )}
       </div>
-
       <div className="w-8 flex-shrink-0">
         <div className="w-full h-0.5 bg-[var(--color-rule)] overflow-hidden">
-          <div
-            className="h-full"
-            style={{
-              width: `${suggestion.confidence * 100}%`,
-              background: suggestion.confidence > 0.7
-                ? 'var(--color-accent)'
-                : suggestion.confidence > 0.4
-                ? 'var(--color-warning)'
-                : 'var(--color-error)',
-            }}
-          />
+          <div className="h-full" style={{ width: `${suggestion.confidence * 100}%`, background: suggestion.confidence > 0.7 ? 'var(--color-accent)' : suggestion.confidence > 0.4 ? 'var(--color-warning)' : 'var(--color-error)' }} />
         </div>
       </div>
     </div>

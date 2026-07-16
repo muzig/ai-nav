@@ -1,22 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Check, Server } from 'lucide-react';
+import { X, Loader2, Check } from 'lucide-react';
 
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SettingSource = 'db' | 'env' | 'default';
-
-const MODEL_OPTIONS = [
-  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
-  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
-  { value: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
-];
-
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [apiKey, setApiKey] = useState('');
-  const [hasKey, setHasKey] = useState(false);
   const [baseUrl, setBaseUrl] = useState('');
   const [model, setModel] = useState('claude-haiku-4-5-20251001');
   const [saving, setSaving] = useState(false);
@@ -27,7 +18,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       fetch('/api/ai/settings')
         .then((r) => r.json())
         .then((data) => {
-          setHasKey(data.hasApiKey);
           setBaseUrl(data.baseURL || '');
           setModel(data.model || 'claude-haiku-4-5-20251001');
         });
@@ -42,13 +32,8 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       await fetch('/api/ai/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          claude_api_key: apiKey.trim() || undefined,
-          base_url: baseUrl.trim(),
-          model,
-        }),
+        body: JSON.stringify({ claude_api_key: apiKey.trim() || undefined, base_url: baseUrl.trim(), model }),
       });
-      if (apiKey.trim()) setHasKey(true);
       setSaved(true);
       setApiKey('');
       setTimeout(() => setSaved(false), 2000);
@@ -70,49 +55,31 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         </div>
         <div className="modal__body space-y-4">
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">
-              claude api key {hasKey && <span className="text-[var(--color-accent)] ml-1">[set]</span>}
-            </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-ant-api…"
-              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]"
-            />
+            <label className="cell__label block mb-1">claude api key</label>
+            <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-ant-api…" className="input" style={{ fontFamily: 'var(--font-outlier)' }} />
           </div>
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">base url</label>
-            <input
-              type="url"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="https://api.anthropic.com"
-              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]"
-            />
+            <label className="cell__label block mb-1">base url</label>
+            <input type="url" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://api.anthropic.com" className="input" style={{ fontFamily: 'var(--font-outlier)' }} />
           </div>
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">model</label>
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]"
-            >
-              {MODEL_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
+            <label className="cell__label block mb-1">model</label>
+            <select value={model} onChange={(e) => setModel(e.target.value)} className="input">
+              <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+              <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+              <option value="claude-opus-4-8">Claude Opus 4.8</option>
             </select>
           </div>
-          <div className="pt-2 border-t border-[var(--color-rule)]">
-            <div className="text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-2">shortcuts</div>
-            <div className="space-y-1 text-[11px]">
+          <div className="pt-3 border-t border-[var(--color-rule)]">
+            <div className="cell__label mb-2">shortcuts</div>
+            <div className="space-y-1.5 text-[12px]">
               <div className="flex items-center justify-between">
                 <span className="text-[var(--color-ink-2)]">search</span>
-                <kbd className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)] border border-[var(--color-rule)] px-1.5 py-0.5">⌘K</kbd>
+                <kbd className="kbd">⌘K</kbd>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[var(--color-ink-2)]">add</span>
-                <kbd className="font-[family-name:var(--font-outlier)] text-[10px] text-[var(--color-ink-3)] border border-[var(--color-rule)] px-1.5 py-0.5">⌘N</kbd>
+                <kbd className="kbd">⌘N</kbd>
               </div>
             </div>
           </div>

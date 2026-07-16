@@ -1,47 +1,86 @@
-/* Hallmark · genre: atmospheric · macrostructure: Split Studio · theme: custom
- * Split layout — sidebar (categories) + main (bookmarks)
- * tokens: dark canvas · phosphor-green accent · Geist Mono + Geist
+/* Hallmark · genre: editorial → macrostructure: Bento Grid · theme: Newsprint
+ * tokens: dual-theme (dark default / light opt-in) · warm amber accent
+ * fonts: Fraunces (display) + Inter Tight (body) + JetBrains Mono (outlier)
  */
 
-:root {
-  /* Paper — dark canvas, neutral cool */
-  --color-paper:    oklch(13%  0.006 250);
-  --color-paper-2:  oklch(17%  0.008 250);
-  --color-paper-3:  oklch(22%  0.010 250);
+:root,
+[data-theme="dark"] {
+  /* Paper — dark canvas, warm tinted */
+  --color-paper:    oklch(15%  0.012 50);
+  --color-paper-2:  oklch(19%  0.014 50);
+  --color-paper-3:  oklch(24%  0.016 50);
+  --color-paper-4:  oklch(30%  0.018 50);
 
-  /* Ink — light text */
-  --color-ink:      oklch(92%  0.004 250);
-  --color-ink-2:    oklch(72%  0.006 240);
-  --color-ink-3:    oklch(52%  0.008 240);
+  /* Ink — light text, warm */
+  --color-ink:      oklch(95%  0.010 80);
+  --color-ink-2:    oklch(78%  0.012 60);
+  --color-ink-3:    oklch(58%  0.014 50);
+  --color-ink-4:    oklch(40%  0.012 50);
 
-  /* Rules and borders */
-  --color-rule:     oklch(26%  0.008 250);
-  --color-rule-2:   oklch(20%  0.006 250);
+  /* Rules */
+  --color-rule:     oklch(32%  0.014 50);
+  --color-rule-2:   oklch(26%  0.012 50);
 
-  /* Accent — phosphor green (terminal vibe) */
-  --color-accent:   oklch(82%  0.18 145);
-  --color-accent-2: oklch(72%  0.16 145);
-  --color-focus:    oklch(82%  0.18 145);
+  /* Accent — warm amber */
+  --color-accent:   oklch(74%  0.16 55);
+  --color-accent-2: oklch(64%  0.16 50);
+  --color-focus:    oklch(74%  0.16 55);
 
   /* Status */
   --color-success:  oklch(72%  0.18 145);
   --color-error:    oklch(65%  0.20 25);
   --color-warning:  oklch(78%  0.14 85);
 
-  /* Typography — terminal-flavored */
-  --font-display:   "Geist", system-ui, -apple-system, sans-serif;
-  --font-body:      "Geist", system-ui, -apple-system, sans-serif;
-  --font-outlier:   "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  /* Paper — warm cream, editorial light */
+  --color-paper:    oklch(97%  0.014 75);
+  --color-paper-2:  oklch(94%  0.016 75);
+  --color-paper-3:  oklch(90%  0.018 75);
+  --color-paper-4:  oklch(84%  0.020 75);
+
+  /* Ink — warm dark text */
+  --color-ink:      oklch(20%  0.018 50);
+  --color-ink-2:    oklch(38%  0.018 50);
+  --color-ink-3:    oklch(55%  0.018 50);
+  --color-ink-4:    oklch(70%  0.016 50);
+
+  /* Rules */
+  --color-rule:     oklch(78%  0.018 65);
+  --color-rule-2:   oklch(86%  0.016 65);
+
+  /* Accent — warm amber (slightly darker for contrast on light) */
+  --color-accent:   oklch(58%  0.18 50);
+  --color-accent-2: oklch(48%  0.18 45);
+  --color-focus:    oklch(58%  0.18 50);
+
+  /* Status */
+  --color-success:  oklch(52%  0.18 145);
+  --color-error:    oklch(48%  0.20 25);
+  --color-warning:  oklch(58%  0.16 70);
+
+  color-scheme: light;
+}
+
+:root {
+  /* Typography — Fraunces + Inter Tight + JetBrains Mono */
+  --font-display:   "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-body:      "Inter Tight", -apple-system, system-ui, sans-serif;
+  --font-outlier:   "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
 
   /* Type scale */
-  --text-xs:    0.75rem;     /* 12px   */
-  --text-sm:    0.875rem;    /* 14px   */
-  --text-base:  1rem;        /* 16px   */
-  --text-md:    1.25rem;     /* 20px   */
-  --text-lg:    1.75rem;     /* 28px   */
-  --text-xl:    2.5rem;      /* 40px   */
+  --text-xs:    0.75rem;
+  --text-sm:    0.875rem;
+  --text-base:  1rem;
+  --text-md:    1.25rem;
+  --text-lg:    1.625rem;
+  --text-xl:    2.25rem;
+  --text-2xl:   3.25rem;
+  --text-display: clamp(2.5rem, 4vw + 1rem, 4.25rem);
 
-  /* Spacing — 4pt scale */
+  /* Spacing */
   --space-3xs:  0.25rem;
   --space-2xs:  0.5rem;
   --space-xs:   0.75rem;
@@ -49,9 +88,13 @@
   --space-md:   1.5rem;
   --space-lg:   2rem;
   --space-xl:   3rem;
+  --space-2xl:  4rem;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  6px;
 
   /* Motion */
   --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-short:  120ms;
-  --dur-medium: 200ms;
+  --dur-short:  150ms;
 }

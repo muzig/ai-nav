@@ -47,21 +47,21 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
         </div>
         <div className="modal__body space-y-3">
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">title</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]" />
+            <label className="cell__label block mb-1">title</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input" />
           </div>
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">url</label>
-            <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] font-[family-name:var(--font-outlier)] outline-none focus:border-[var(--color-focus)]" />
+            <label className="cell__label block mb-1">url</label>
+            <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className="input" style={{ fontFamily: 'var(--font-outlier)' }} />
           </div>
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)] resize-none" />
+            <label className="cell__label block mb-1">description</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="input" style={{ resize: 'none' }} />
           </div>
           <div>
-            <label className="block text-[10px] font-[family-name:var(--font-outlier)] uppercase tracking-wider text-[var(--color-ink-3)] mb-1">category</label>
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full bg-[var(--color-paper)] border border-[var(--color-rule)] px-3 py-2 text-[13px] text-[var(--color-ink)] outline-none focus:border-[var(--color-focus)]">
-              <option value="">uncategorized</option>
+            <label className="cell__label block mb-1">category</label>
+            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input">
+              <option value="">unsorted</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
