@@ -139,11 +139,11 @@ function SuggestionRow({ suggestion, categories, onToggle, onCategoryChange }: {
     <div className={`flex items-center gap-3 p-2 ${suggestion.selected ? '' : 'opacity-40'}`}>
       <button
         onClick={onToggle}
-        className={`w-3.5 h-3.5 border flex items-center justify-center flex-shrink-0 ${
+        className={`w-6 h-6 sm:w-4 sm:h-4 border flex items-center justify-center flex-shrink-0 ${
           suggestion.selected ? 'bg-[var(--color-accent)] border-[var(--color-accent)]' : 'border-[var(--color-rule)]'
         }`}
       >
-        {suggestion.selected && <Check size={10} className="text-[var(--color-paper)]" />}
+        {suggestion.selected && <Check size={12} className="text-[var(--color-paper)]" />}
       </button>
       <img src={suggestion.favicon} alt="" className="w-4 h-4 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
       <div className="min-w-0 flex-1">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Search, Plus, Settings, Loader2, Eye, Pencil, Wand2,
-  Check, AlertCircle, X, Trash2, ExternalLink, Sun, Moon
+  Check, AlertCircle, X, Trash2, Sun, Moon
 } from 'lucide-react';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAI } from '../hooks/useAI';
@@ -17,7 +17,6 @@ export default function Dashboard() {
   const {
     bookmarks,
     categories,
-    grouped,
     loading,
     addBookmarksBulk,
     updateBookmark,
@@ -32,17 +31,16 @@ export default function Dashboard() {
   const [addUrlOpen, setAddUrlOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [activeCategoryId, setActiveCategoryId] = useState<number | 'all' | 'uncategorized'>('all');
   const [mode, setMode] = useState<AppMode>(() => {
     const saved = localStorage.getItem('ai-nav-mode');
     return (saved === 'readonly' || saved === 'edit') ? saved : 'edit';
   });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('ai-nav-theme');
     return saved === 'light' ? 'light' : 'dark';
   });
   const [filterCategory, setFilterCategory] = useState<number | 'all' | 'uncategorized' | null>(null);
+  const activePillRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -51,11 +49,16 @@ export default function Dashboard() {
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
+  // Keep the active filter pill visible inside the horizontally scrolling row
+  useEffect(() => {
+    activePillRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+  }, [filterCategory]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        document.getElementById('bento-search-input')?.focus();
+        document.getElementById('nav-search-input')?.focus();
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'n' && mode === 'edit') {
         e.preventDefault();
@@ -83,22 +86,6 @@ export default function Dashboard() {
     }
     return list;
   }, [bookmarks, searchQuery, filterCategory]);
-
-  // Group visible bookmarks by category for inline section anchors
-  const groupedByCat = useMemo(() => {
-    const byCat = new Map<number | null, { category: Category | null; bookmarks: typeof bookmarks }>();
-    for (const bm of visibleBookmarks) {
-      const key = bm.category_id ?? null;
-      if (!byCat.has(key)) {
-        byCat.set(key, {
-          category: categories.find(c => c.id === key) ?? null,
-          bookmarks: [],
-        });
-      }
-      byCat.get(key)!.bookmarks.push(bm);
-    }
-    return Array.from(byCat.values());
-  }, [visibleBookmarks, categories]);
 
   const handleConfirmBookmarks = async (items: Array<{ title: string; url: string; description: string; favicon: string; category_id: number | null }>) => {
     await addBookmarksBulk(items);
@@ -222,6 +209,7 @@ export default function Dashboard() {
           <div className="search-bar">
             <Search size={12} className="text-[var(--color-ink-3)] flex-shrink-0" />
             <input
+              id="nav-search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -237,6 +225,7 @@ export default function Dashboard() {
             {filterPills.map((p) => (
               <button
                 key={String(p.id)}
+                ref={filterCategory === p.id ? activePillRef : undefined}
                 onClick={() => setFilterCategory(p.id)}
                 className={`filter-pill ${filterCategory === p.id ? 'filter-pill--active' : ''}`}
               >
@@ -284,6 +273,31 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* MOBILE ACTION BAR · thumb-reach actions (hidden on desktop via CSS) */}
+      <nav className="action-bar" aria-label="Quick actions">
+        <button onClick={toggleMode} className="action-bar__btn" title={isReadonly ? 'Switch to edit mode' : 'Switch to readonly mode'}>
+          {isReadonly ? <Pencil size={18} /> : <Eye size={18} />}
+        </button>
+        {!isReadonly && (
+          <button onClick={handleAutoGroup} disabled={autoGrouping} className="action-bar__btn" title="AI group">
+            {autoGrouping ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
+          </button>
+        )}
+        {!isReadonly && (
+          <button onClick={() => setAddUrlOpen(true)} className="action-bar__fab" title="Add bookmarks">
+            <Plus size={22} />
+          </button>
+        )}
+        <button onClick={toggleTheme} className="action-bar__btn" title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        {!isReadonly && (
+          <button onClick={() => setSettingsOpen(true)} className="action-bar__btn" title="Settings">
+            <Settings size={18} />
+          </button>
+        )}
+      </nav>
 
       {/* Toast */}
       {autoGroupResult && (
@@ -375,72 +389,6 @@ function Tile({ bookmark, catName, mode, onEdit, onDelete }: {
           </button>
         </div>
       )}
-    </a>
-  );
-}
-
-/* ===== Bookmark row ===== */
-
-function BookmarkRow({ bookmark, mode, onEdit, onDelete }: {
-  bookmark: Bookmark;
-  mode: AppMode;
-  onEdit: (b: Bookmark) => void;
-  onDelete: (id: number) => void;
-}) {
-  const domain = (() => {
-    try {
-      return new URL(bookmark.url).hostname.replace('www.', '');
-    } catch {
-      return bookmark.url;
-    }
-  })();
-
-  const isReadonly = mode === 'readonly';
-
-  return (
-    <a
-      href={bookmark.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="bm-row group"
-    >
-      <div className="bm-row__favicon">
-        {bookmark.favicon ? (
-          <img
-            src={bookmark.favicon}
-            alt=""
-            className="w-4 h-4 object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
-          />
-        ) : (
-          <div className="w-4 h-4 bg-[var(--color-rule)] rounded-sm" />
-        )}
-      </div>
-      <div className="min-w-0 overflow-hidden">
-        <div className="bm-row__title">{bookmark.title}</div>
-      </div>
-      <div className="flex items-center gap-1">
-        <span className="bm-row__domain hidden sm:inline">{domain}</span>
-        {!isReadonly && (
-          <>
-            <button
-              onClick={(e) => { e.preventDefault(); onEdit(bookmark); }}
-              className="btn-icon opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-              title="Edit"
-            >
-              <Pencil size={11} />
-            </button>
-            <button
-              onClick={(e) => { e.preventDefault(); onDelete(bookmark.id); }}
-              className="btn-icon opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-              title="Delete"
-            >
-              <Trash2 size={11} />
-            </button>
-          </>
-        )}
-        <ExternalLink size={11} className="text-[var(--color-ink-3)] opacity-0 group-hover:opacity-100" />
-      </div>
     </a>
   );
 }
