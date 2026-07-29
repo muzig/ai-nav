@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS bookmarks (
   favicon TEXT DEFAULT '',
   category_id INTEGER,
   sort_order INTEGER DEFAULT 0,
+  is_favorite INTEGER NOT NULL DEFAULT 0,
+  favorited_at TEXT,
+  last_opened_at TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL

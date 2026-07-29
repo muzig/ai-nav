@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Bookmark, Category } from '@ai-nav/shared';
+import type { BulkCreateResult, OpenBookmarkResponse } from '@ai-nav/shared';
 
 export type { Bookmark, Category };
 
@@ -9,6 +10,15 @@ export interface GroupedBookmarks {
 }
 
 const API = '/api';
+
+async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
+  const response = await fetch(input, init);
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error((body as { error?: string }).error || `Request failed with ${response.status}`);
+  }
+  return body as T;
+}
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -37,41 +47,77 @@ export function useBookmarks() {
   }, [fetchAll]);
 
   const addBookmark = async (data: { title: string; url: string; description?: string; favicon?: string; category_id?: number | null }) => {
-    const res = await fetch(`${API}/bookmarks`, {
+    const bookmark = await requestJson<Bookmark>(`${API}/bookmarks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const bookmark = await res.json();
     setBookmarks((prev) => [...prev, bookmark]);
     return bookmark;
   };
 
   const addBookmarksBulk = async (items: Array<{ title: string; url: string; description?: string; favicon?: string; category_id?: number | null }>) => {
-    const res = await fetch(`${API}/bookmarks/bulk`, {
+    const result = await requestJson<BulkCreateResult>(`${API}/bookmarks/bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),
     });
-    const newBookmarks = await res.json();
-    setBookmarks((prev) => [...prev, ...newBookmarks]);
-    return newBookmarks;
+    setBookmarks((prev) => [...prev, ...result.created]);
+    return result;
   };
 
   const updateBookmark = async (id: number, data: Partial<Bookmark>) => {
-    const res = await fetch(`${API}/bookmarks/${id}`, {
+    const updated = await requestJson<Bookmark>(`${API}/bookmarks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const updated = await res.json();
     setBookmarks((prev) => prev.map((b) => (b.id === id ? updated : b)));
     return updated;
   };
 
   const deleteBookmark = async (id: number) => {
-    await fetch(`${API}/bookmarks/${id}`, { method: 'DELETE' });
+    await requestJson<{ success: true }>(`${API}/bookmarks/${id}`, { method: 'DELETE' });
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const setFavorite = async (id: number, isFavorite: boolean) => {
+    const previous = bookmarks.find((bookmark) => bookmark.id === id);
+    if (!previous) return;
+    const optimistic = {
+      ...previous,
+      is_favorite: isFavorite,
+      favorited_at: isFavorite ? new Date().toISOString() : null,
+    };
+    setBookmarks((items) => items.map((item) => item.id === id ? optimistic : item));
+    try {
+      const updated = await requestJson<Bookmark>(`${API}/bookmarks/${id}/favorite`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_favorite: isFavorite }),
+      });
+      setBookmarks((items) => items.map((item) => item.id === id ? updated : item));
+    } catch (error) {
+      setBookmarks((items) => items.map((item) => item.id === id ? previous : item));
+      throw error;
+    }
+  };
+
+  const openBookmark = (bookmark: Bookmark) => {
+    const openedAt = new Date().toISOString();
+    setBookmarks((items) => items.map((item) =>
+      item.id === bookmark.id ? { ...item, last_opened_at: openedAt } : item
+    ));
+    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+    void requestJson<OpenBookmarkResponse>(`${API}/bookmarks/${bookmark.id}/open`, {
+      method: 'POST',
+    }).then(({ bookmark: updated }) => {
+      setBookmarks((items) => items.map((item) => item.id === updated.id ? updated : item));
+    }).catch(() => {
+      setBookmarks((items) => items.map((item) =>
+        item.id === bookmark.id ? { ...item, last_opened_at: bookmark.last_opened_at } : item
+      ));
+    });
   };
 
   const addCategory = async (data: { name: string; icon?: string; color?: string }) => {
@@ -160,6 +206,8 @@ export function useBookmarks() {
     addBookmarksBulk,
     updateBookmark,
     deleteBookmark,
+    setFavorite,
+    openBookmark,
     addCategory,
     updateCategory,
     deleteCategory,

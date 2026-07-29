@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Trash2 } from 'lucide-react';
 import type { Bookmark, Category } from '../hooks/useBookmarks';
 
 interface EditBookmarkModalProps {
@@ -8,9 +8,10 @@ interface EditBookmarkModalProps {
   categories: Category[];
   onClose: () => void;
   onSave: (id: number, data: Partial<Bookmark>) => void;
+  onDelete: (id: number) => void;
 }
 
-export default function EditBookmarkModal({ isOpen, bookmark, categories, onClose, onSave }: EditBookmarkModalProps) {
+export default function EditBookmarkModal({ isOpen, bookmark, categories, onClose, onSave, onDelete }: EditBookmarkModalProps) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -69,6 +70,17 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
           </div>
         </div>
         <div className="modal__footer">
+          <button
+            onClick={() => {
+              onDelete(bookmark.id);
+              onClose();
+            }}
+            className="btn btn--danger"
+          >
+            <Trash2 size={12} />
+            <span>delete</span>
+          </button>
+          <span className="modal__footer-spacer" />
           <button onClick={onClose} className="btn">cancel</button>
           <button onClick={handleSave} disabled={!title.trim() || !url.trim()} className="btn btn--primary disabled:opacity-40">
             <Save size={12} />

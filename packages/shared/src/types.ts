@@ -8,6 +8,9 @@ export interface Bookmark {
   favicon: string;
   category_id: number | null;
   sort_order: number;
+  is_favorite: boolean;
+  favorited_at: string | null;
+  last_opened_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +29,20 @@ export interface UpdateBookmarkInput {
   description?: string;
   favicon?: string;
   category_id?: number | null;
+  is_favorite?: boolean;
+}
+
+export interface SetFavoriteRequest {
+  is_favorite: boolean;
+}
+
+export interface OpenBookmarkResponse {
+  bookmark: Bookmark;
+}
+
+export interface BulkCreateResult {
+  created: Bookmark[];
+  skipped: Array<{ url: string; reason: 'duplicate' | 'invalid' }>;
 }
 
 // ---- Category ----

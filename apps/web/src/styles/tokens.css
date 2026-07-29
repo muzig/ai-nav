@@ -1,100 +1,86 @@
-/* Hallmark · genre: editorial → macrostructure: Bento Grid · theme: Newsprint
- * tokens: dual-theme (dark default / light opt-in) · warm amber accent
- * fonts: Fraunces (display) + Inter Tight (body) + JetBrains Mono (outlier)
- */
-
 :root,
-[data-theme="dark"] {
-  /* Paper — dark canvas, warm tinted */
-  --color-paper:    oklch(15%  0.012 50);
-  --color-paper-2:  oklch(19%  0.014 50);
-  --color-paper-3:  oklch(24%  0.016 50);
-  --color-paper-4:  oklch(30%  0.018 50);
-
-  /* Ink — light text, warm */
-  --color-ink:      oklch(95%  0.010 80);
-  --color-ink-2:    oklch(78%  0.012 60);
-  --color-ink-3:    oklch(58%  0.014 50);
-  --color-ink-4:    oklch(40%  0.012 50);
-
-  /* Rules */
-  --color-rule:     oklch(32%  0.014 50);
-  --color-rule-2:   oklch(26%  0.012 50);
-
-  /* Accent — warm amber */
-  --color-accent:   oklch(74%  0.16 55);
-  --color-accent-2: oklch(64%  0.16 50);
-  --color-focus:    oklch(74%  0.16 55);
-
-  /* Status */
-  --color-success:  oklch(72%  0.18 145);
-  --color-error:    oklch(65%  0.20 25);
-  --color-warning:  oklch(78%  0.14 85);
-
-  color-scheme: dark;
-}
-
 [data-theme="light"] {
-  /* Paper — warm cream, editorial light */
-  --color-paper:    oklch(97%  0.014 75);
-  --color-paper-2:  oklch(94%  0.016 75);
-  --color-paper-3:  oklch(90%  0.018 75);
-  --color-paper-4:  oklch(84%  0.020 75);
-
-  /* Ink — warm dark text */
-  --color-ink:      oklch(20%  0.018 50);
-  --color-ink-2:    oklch(38%  0.018 50);
-  --color-ink-3:    oklch(55%  0.018 50);
-  --color-ink-4:    oklch(70%  0.016 50);
-
-  /* Rules */
-  --color-rule:     oklch(78%  0.018 65);
-  --color-rule-2:   oklch(86%  0.016 65);
-
-  /* Accent — warm amber (slightly darker for contrast on light) */
-  --color-accent:   oklch(58%  0.18 50);
-  --color-accent-2: oklch(48%  0.18 45);
-  --color-focus:    oklch(58%  0.18 50);
-
-  /* Status */
-  --color-success:  oklch(52%  0.18 145);
-  --color-error:    oklch(48%  0.20 25);
-  --color-warning:  oklch(58%  0.16 70);
-
+  --surface-page: #f5f5f7;
+  --surface-raised: #ffffff;
+  --surface-subtle: #fbfbfd;
+  --surface-hover: #f0f0f2;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --separator: #d2d2d7;
+  --action: #0071e3;
+  --action-hover: #0077ed;
+  --danger: #d70015;
+  --focus-ring: color-mix(in srgb, var(--action) 35%, transparent);
+  --color-paper: var(--surface-page);
+  --color-paper-2: var(--surface-raised);
+  --color-paper-3: var(--surface-subtle);
+  --color-paper-4: var(--surface-hover);
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-3: #86868b;
+  --color-ink-4: #aeaeb2;
+  --color-rule: var(--separator);
+  --color-rule-2: #e5e5e7;
+  --color-accent: var(--action);
+  --color-accent-2: var(--action-hover);
+  --color-focus: var(--action);
+  --color-success: #248a3d;
+  --color-error: var(--danger);
+  --color-warning: #b25000;
   color-scheme: light;
 }
 
+[data-theme="dark"] {
+  --surface-page: #1c1c1e;
+  --surface-raised: #2c2c2e;
+  --surface-subtle: #242426;
+  --surface-hover: #3a3a3c;
+  --text-primary: #f5f5f7;
+  --text-secondary: #aeaeb2;
+  --separator: #48484a;
+  --action: #2997ff;
+  --action-hover: #40a1ff;
+  --danger: #ff453a;
+  --focus-ring: color-mix(in srgb, var(--action) 40%, transparent);
+  --color-paper: var(--surface-page);
+  --color-paper-2: var(--surface-raised);
+  --color-paper-3: var(--surface-subtle);
+  --color-paper-4: var(--surface-hover);
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-3: #8e8e93;
+  --color-ink-4: #636366;
+  --color-rule: var(--separator);
+  --color-rule-2: #38383a;
+  --color-accent: var(--action);
+  --color-accent-2: var(--action-hover);
+  --color-focus: var(--action);
+  --color-success: #30d158;
+  --color-error: var(--danger);
+  --color-warning: #ff9f0a;
+  color-scheme: dark;
+}
+
 :root {
-  /* Typography — Fraunces + Inter Tight + JetBrains Mono */
-  --font-display:   "Fraunces", "Iowan Old Style", Georgia, serif;
-  --font-body:      "Inter Tight", -apple-system, system-ui, sans-serif;
-  --font-outlier:   "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
-
-  /* Type scale */
-  --text-xs:    0.75rem;
-  --text-sm:    0.875rem;
-  --text-base:  1rem;
-  --text-md:    1.25rem;
-  --text-lg:    1.625rem;
-  --text-xl:    2.25rem;
-  --text-2xl:   3.25rem;
-  --text-display: clamp(2.5rem, 4vw + 1rem, 4.25rem);
-
-  /* Spacing */
-  --space-3xs:  0.25rem;
-  --space-2xs:  0.5rem;
-  --space-xs:   0.75rem;
-  --space-sm:   1rem;
-  --space-md:   1.5rem;
-  --space-lg:   2rem;
-  --space-xl:   3rem;
-  --space-2xl:  4rem;
-
-  /* Radius */
-  --radius-sm:  4px;
-  --radius-md:  6px;
-
-  /* Motion */
-  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-short:  150ms;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-outlier: "SF Mono", ui-monospace, monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 180ms;
+  --space-3xs: .25rem;
+  --space-2xs: .5rem;
+  --space-xs: .75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  --text-xs: .75rem;
+  --text-sm: .8125rem;
+  --text-md: .9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
 }

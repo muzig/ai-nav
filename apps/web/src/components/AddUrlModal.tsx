@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Sparkles, Loader2, Check, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { useAI, type AiSuggestion } from '../hooks/useAI';
 import type { Category } from '@ai-nav/shared';
@@ -6,6 +6,7 @@ import type { Category } from '@ai-nav/shared';
 interface AddUrlModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialUrls?: string[];
   onConfirm: (items: Array<{ title: string; url: string; description: string; favicon: string; category_id: number | null }>) => void;
   categories: Category[];
   onAddCategory: (name: string) => Promise<Category>;
@@ -16,11 +17,15 @@ interface EditableSuggestion extends AiSuggestion {
   editingCategory: string;
 }
 
-export default function AddUrlModal({ isOpen, onClose, onConfirm, categories, onAddCategory }: AddUrlModalProps) {
+export default function AddUrlModal({ isOpen, onClose, initialUrls = [], onConfirm, categories, onAddCategory }: AddUrlModalProps) {
   const [urlText, setUrlText] = useState('');
   const [suggestions, setSuggestions] = useState<EditableSuggestion[]>([]);
   const [step, setStep] = useState<'input' | 'review'>('input');
   const { parsing, error, parseUrls, clearError } = useAI();
+
+  useEffect(() => {
+    if (isOpen) setUrlText(initialUrls.join('\n'));
+  }, [isOpen, initialUrls]);
 
   const handleParse = async () => {
     const result = await parseUrls(urlText);
