@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "NODE_OPTIONS=--conditions=development PORT=3101 tsx watch src/index.ts",
     "build": "tsc",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run src",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"

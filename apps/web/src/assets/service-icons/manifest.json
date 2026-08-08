@@ -1,0 +1,32 @@
+{
+  "source": "https://github.com/homarr-labs/dashboard-icons",
+  "commit": "0d6481f2a87cf611e2bf25adcf8fb07351ed2440",
+  "license": "Apache-2.0",
+  "icons": {
+    "cloudreve": {
+      "file": "cloudreve.svg",
+      "sha256": "7964936fa8391c461990e11c17c952c4d3ff6fdd12b1cf00779a7db2bd112bb0",
+      "modified": "Removed XML declaration and external DTD; drawing data unchanged"
+    },
+    "gitea": {
+      "file": "gitea.svg",
+      "sha256": "6e2da0b8fbd4e0eec778714f5009361eb0a339967e06d265f3d7d0d50418d7c7"
+    },
+    "grafana": {
+      "file": "grafana.svg",
+      "sha256": "8f32897073ee93594ab2339482ef21ca3767044055da89e2baf9066d25592df7"
+    },
+    "immich": {
+      "file": "immich.svg",
+      "sha256": "a5d4a43899e63ffc7e97246034f7f63cdfdc410aa803c5713d545290601c4d89"
+    },
+    "opengist": {
+      "file": "opengist.svg",
+      "sha256": "8e8ee06e29043c847625de8cbee8ded48b5d92380fe52e449d54067182168799"
+    },
+    "teslamate": {
+      "file": "teslamate.svg",
+      "sha256": "b47c8b37daa7cb8e757ee11f4d8555b27634f52067f5581d9107dcf01341b787"
+    }
+  }
+}

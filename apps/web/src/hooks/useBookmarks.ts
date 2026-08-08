@@ -28,11 +28,13 @@ export function useBookmarks() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [bmRes, catRes] = await Promise.all([
-        fetch(`${API}/bookmarks`),
-        fetch(`${API}/categories`),
+      const [bmData, catData] = await Promise.all([
+        requestJson<Bookmark[]>(`${API}/bookmarks`),
+        requestJson<Category[]>(`${API}/categories`),
       ]);
-      const [bmData, catData] = await Promise.all([bmRes.json(), catRes.json()]);
+      if (!Array.isArray(bmData) || !Array.isArray(catData)) {
+        throw new Error('The bookmarks API returned an invalid collection');
+      }
       setBookmarks(bmData);
       setCategories(catData);
     } catch (err) {

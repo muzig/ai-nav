@@ -28,6 +28,10 @@ app.get('/api/health', (_req, res) => {
 
 // Serve frontend static files (production)
 const webDist = resolve(__dirname, '../../../apps/web/dist');
+app.use('/assets', express.static(resolve(webDist, 'assets'), {
+  immutable: true,
+  maxAge: '1y',
+}));
 app.use(express.static(webDist));
 app.get('*', (_req, res) => {
   res.sendFile(resolve(webDist, 'index.html'));

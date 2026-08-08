@@ -1,14 +1,16 @@
 :root,
 [data-theme="light"] {
-  --surface-page: #f5f5f7;
-  --surface-raised: #ffffff;
-  --surface-subtle: #fbfbfd;
-  --surface-hover: #f0f0f2;
-  --text-primary: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --separator: #d2d2d7;
-  --action: #0071e3;
-  --action-hover: #0077ed;
+  --surface-page: oklch(96% 0.014 78);
+  --surface-raised: oklch(99% 0.008 82);
+  --surface-subtle: oklch(93% 0.018 78);
+  --surface-hover: oklch(90% 0.025 78);
+  --text-primary: oklch(25% 0.025 250);
+  --text-secondary: oklch(48% 0.026 250);
+  --separator: oklch(27% 0.025 250 / 0.16);
+  --action: oklch(35% 0.055 250);
+  --action-hover: oklch(30% 0.06 250);
+  --highlight: oklch(55% 0.135 67);
+  --highlight-soft: oklch(91% 0.045 72);
   --danger: #d70015;
   --focus-ring: color-mix(in srgb, var(--action) 35%, transparent);
   --color-paper: var(--surface-page);
@@ -24,22 +26,26 @@
   --color-accent: var(--action);
   --color-accent-2: var(--action-hover);
   --color-focus: var(--action);
-  --color-success: #248a3d;
+  --color-success: oklch(52% 0.12 165);
   --color-error: var(--danger);
-  --color-warning: #b25000;
+  --color-warning: var(--highlight);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --surface-page: #1c1c1e;
-  --surface-raised: #2c2c2e;
-  --surface-subtle: #242426;
-  --surface-hover: #3a3a3c;
-  --text-primary: #f5f5f7;
-  --text-secondary: #aeaeb2;
-  --separator: #48484a;
-  --action: #2997ff;
-  --action-hover: #40a1ff;
+  --surface-page: oklch(19% 0.02 250);
+  --surface-raised: oklch(24% 0.025 250);
+  --surface-subtle: oklch(21% 0.02 250);
+  --surface-hover: oklch(29% 0.03 250);
+  --text-primary: oklch(93% 0.015 78);
+  --text-secondary: oklch(75% 0.02 250);
+  --separator: oklch(70% 0.025 250 / 0.24);
+  --action: oklch(63% 0.08 250);
+  --action-hover: oklch(70% 0.09 250);
+  --highlight: oklch(67% 0.12 72);
+  --highlight-soft: oklch(31% 0.04 72);
   --danger: #ff453a;
   --focus-ring: color-mix(in srgb, var(--action) 40%, transparent);
   --color-paper: var(--surface-page);
@@ -55,9 +61,11 @@
   --color-accent: var(--action);
   --color-accent-2: var(--action-hover);
   --color-focus: var(--action);
-  --color-success: #30d158;
+  --color-success: oklch(70% 0.14 165);
   --color-error: var(--danger);
-  --color-warning: #ff9f0a;
+  --color-warning: var(--highlight);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
   color-scheme: dark;
 }
 

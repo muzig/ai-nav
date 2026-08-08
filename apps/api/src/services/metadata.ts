@@ -9,10 +9,9 @@ export async function extractMetadata(url: string): Promise<UrlMetadata> {
     favicon: `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`,
   };
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
@@ -20,8 +19,6 @@ export async function extractMetadata(url: string): Promise<UrlMetadata> {
         'Accept': 'text/html',
       },
     });
-    clearTimeout(timeout);
-
     if (!response.ok) return defaultMeta;
 
     const html = await response.text();
@@ -64,6 +61,8 @@ export async function extractMetadata(url: string): Promise<UrlMetadata> {
     };
   } catch {
     return defaultMeta;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
