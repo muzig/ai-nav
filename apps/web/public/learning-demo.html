@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>AI Nav · Learning product directions</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --lab-bg: #0d0e12;
+        --lab-panel: #15171d;
+        --lab-text: #f5f5f6;
+        --lab-muted: #969aa7;
+        --lab-line: rgba(255, 255, 255, .1);
+        --lab-accent: #9b9eff;
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--lab-bg); }
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--lab-text);
+        background:
+          radial-gradient(circle at 13% 0%, rgba(111, 111, 255, .14), transparent 30rem),
+          radial-gradient(circle at 88% 24%, rgba(86, 208, 172, .06), transparent 27rem),
+          var(--lab-bg);
+      }
+      button { font: inherit; }
+      button:focus-visible { outline: 2px solid #c2c4ff; outline-offset: 3px; }
+      .shell { width: min(1440px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 68px; }
+      .lab-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 72px; }
+      .brand { display: flex; align-items: center; gap: 11px; font-size: 14px; font-weight: 700; letter-spacing: -.03em; }
+      .brand-mark { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; background: linear-gradient(145deg, #f5f5f7, #777bff); color: #11121a; font-size: 12px; font-weight: 800; }
+      .header-note { color: var(--lab-muted); font-size: 12px; }
+      .eyebrow { margin: 0 0 14px; color: #aeb2ff; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { max-width: 760px; margin-bottom: 17px; font-size: clamp(38px, 6vw, 76px); line-height: .98; letter-spacing: -.065em; }
+      .intro-copy { max-width: 660px; margin-bottom: 38px; color: var(--lab-muted); font-size: 16px; line-height: 1.7; }
+
+      .directions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+      .choice-card { position: relative; display: flex; min-width: 0; flex-direction: column; gap: 15px; padding: 14px; border: 1px solid var(--lab-line); border-radius: 18px; background: rgba(255,255,255,.035); color: var(--lab-text); text-align: left; cursor: pointer; transition: transform 180ms ease, border-color 180ms ease, background 180ms ease; }
+      .choice-card:hover { transform: translateY(-2px); border-color: rgba(193,195,255,.55); background: rgba(255,255,255,.07); }
+      .choice-card[aria-pressed="true"] { border-color: var(--card-accent); background: var(--card-soft); box-shadow: 0 0 0 1px var(--card-accent), 0 20px 50px rgba(0,0,0,.18); }
+      .choice-card[aria-pressed="true"]::after { position: absolute; top: 13px; right: 13px; width: 7px; height: 7px; border-radius: 50%; background: var(--card-accent); box-shadow: 0 0 0 5px var(--card-soft); content: ""; }
+      .choice-card[data-choice="today"] { --card-accent: #9b9eff; --card-soft: rgba(155,158,255,.14); }
+      .choice-card[data-choice="studio"] { --card-accent: #b9793d; --card-soft: rgba(185,121,61,.14); }
+      .choice-card[data-choice="tutor"] { --card-accent: #78a9ff; --card-soft: rgba(120,169,255,.13); }
+      .choice-card[data-choice="garden"] { --card-accent: #e7b878; --card-soft: rgba(231,184,120,.13); }
+      .mini-preview { height: 112px; padding: 10px; overflow: hidden; border-radius: 12px; background: #20232b; }
+      .mini-top { display: flex; justify-content: space-between; align-items: center; height: 9px; margin-bottom: 11px; }
+      .mini-brand { width: 40px; height: 5px; border-radius: 2px; background: rgba(255,255,255,.8); }
+      .mini-actions { display: flex; gap: 4px; }
+      .mini-actions i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.35); }
+      .mini-body { display: grid; grid-template-columns: 27px 1fr; gap: 8px; height: 77px; }
+      .mini-side { border-right: 1px solid rgba(255,255,255,.13); }
+      .mini-side i { display: block; width: 15px; height: 4px; margin: 7px 0; border-radius: 2px; background: rgba(255,255,255,.28); }
+      .mini-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; align-content: start; }
+      .mini-block { min-height: 27px; border: 1px solid rgba(255,255,255,.12); border-radius: 5px; background: rgba(255,255,255,.07); }
+      .mini-block:first-child { grid-column: 1 / -1; min-height: 22px; }
+      .choice-card[data-choice="today"] .mini-preview { background: #25283a; }
+      .choice-card[data-choice="today"] .mini-block:nth-child(2) { background: rgba(155,158,255,.52); }
+      .choice-card[data-choice="studio"] .mini-preview { background: #26384c; }
+      .choice-card[data-choice="studio"] .mini-block:nth-child(2) { background: rgba(185,121,61,.72); }
+      .choice-card[data-choice="tutor"] .mini-preview { background: #202e48; }
+      .choice-card[data-choice="tutor"] .mini-content { display: block; }
+      .choice-card[data-choice="tutor"] .mini-block { height: 14px; margin: 5px 0; }
+      .choice-card[data-choice="tutor"] .mini-block:nth-child(2) { width: 75%; background: rgba(120,169,255,.57); }
+      .choice-card[data-choice="garden"] .mini-preview { background: #2e2924; }
+      .choice-card[data-choice="garden"] .mini-content { position: relative; display: block; }
+      .choice-card[data-choice="garden"] .mini-block { position: absolute; width: 23px; min-height: 23px; border-radius: 50%; background: rgba(231,184,120,.6); }
+      .choice-card[data-choice="garden"] .mini-block:nth-child(2) { top: 19px; left: 39px; }
+      .choice-card[data-choice="garden"] .mini-block:nth-child(3) { top: 40px; left: 14px; }
+      .choice-name { margin: 0 0 4px; font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+      .choice-description { margin: 0; color: var(--lab-muted); font-size: 12px; line-height: 1.5; }
+
+      .workspace { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(290px, .7fr); gap: 18px; align-items: stretch; }
+      .preview-frame { min-width: 0; padding: 11px; border: 1px solid var(--lab-line); border-radius: 25px; background: #1a1c23; box-shadow: 0 24px 80px rgba(0,0,0,.32); }
+      .preview-chrome { display: flex; align-items: center; gap: 6px; height: 25px; padding: 0 7px; color: #767a88; font-size: 10px; }
+      .chrome-dot { width: 7px; height: 7px; border-radius: 50%; background: #4f525c; }
+      .chrome-url { margin-left: 8px; opacity: .7; }
+      .product-preview { --app-bg: #f6f6fb; --app-surface: #fff; --app-surface-2: #f0f0fa; --app-text: #20212d; --app-muted: #7f8190; --app-line: rgba(32,33,45,.12); --app-accent: #716fe7; --app-accent-soft: rgba(113,111,231,.12); --app-good: #149b75; position: relative; min-height: 570px; overflow: hidden; border: 1px solid var(--app-line); border-radius: 17px; background: var(--app-bg); color: var(--app-text); transition: background 280ms ease, color 280ms ease; }
+      .product-preview[data-product="studio"] { --app-bg: oklch(96% .014 78); --app-surface: oklch(99% .008 82); --app-surface-2: oklch(92% .025 78); --app-text: oklch(25% .025 250); --app-muted: oklch(48% .026 250); --app-line: oklch(27% .025 250 / .16); --app-accent: oklch(55% .135 67); --app-accent-soft: oklch(91% .045 72); --app-good: oklch(52% .12 165); }
+      .product-preview[data-product="tutor"] { --app-bg: #edf4ff; --app-surface: #fff; --app-surface-2: #dfebff; --app-text: #17253e; --app-muted: #71809a; --app-line: rgba(23,37,62,.13); --app-accent: #4b82ec; --app-accent-soft: rgba(75,130,236,.13); --app-good: #118866; }
+      .product-preview[data-product="garden"] { --app-bg: #f4f1eb; --app-surface: #fffdf8; --app-surface-2: #ebe5da; --app-text: #302d29; --app-muted: #8a8175; --app-line: rgba(48,45,41,.14); --app-accent: #b87b3e; --app-accent-soft: rgba(184,123,62,.13); --app-good: #4c9479; }
+      .product-preview[data-product="studio"]::before { display: none; }
+      .product-preview[data-product="tutor"]::before { position: absolute; top: -20%; right: -10%; width: 45%; height: 45%; border-radius: 50%; background: rgba(105,160,255,.14); filter: blur(55px); content: ""; }
+      .product-topbar { position: relative; display: flex; height: 55px; align-items: center; justify-content: space-between; padding: 0 21px; border-bottom: 1px solid var(--app-line); background: color-mix(in srgb, var(--app-bg) 82%, transparent); }
+      .product-preview[data-product="studio"] .product-topbar, .product-preview[data-product="tutor"] .product-topbar { backdrop-filter: blur(16px); }
+      .product-brand { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 750; letter-spacing: -.03em; }
+      .product-mark { display: grid; width: 21px; height: 21px; place-items: center; border-radius: 6px; background: var(--app-text); color: var(--app-bg); font-size: 9px; font-weight: 800; }
+      .product-nav { display: flex; gap: 18px; color: var(--app-muted); font-size: 10px; }
+      .product-nav span.active { color: var(--app-text); font-weight: 750; }
+      .product-user { width: 23px; height: 23px; border: 1px solid var(--app-line); border-radius: 50%; background: var(--app-surface-2); }
+      .product-content { position: relative; }
+      .today-layout { display: grid; grid-template-columns: 148px minmax(0, 1fr); min-height: 514px; }
+      .product-sidebar { padding: 26px 13px; border-right: 1px solid var(--app-line); background: color-mix(in srgb, var(--app-surface) 42%, transparent); }
+      .sidebar-label { margin: 0 8px 10px; color: var(--app-muted); font-size: 9px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+      .sidebar-list { display: grid; gap: 3px; }
+      .sidebar-item { display: flex; align-items: center; justify-content: space-between; min-height: 29px; padding: 0 8px; border-radius: 6px; color: var(--app-muted); font-size: 10px; }
+      .sidebar-item.active { background: var(--app-accent-soft); color: var(--app-text); font-weight: 750; }
+      .sidebar-item span:last-child { opacity: .6; font-size: 8px; }
+      .today-main { min-width: 0; padding: 30px; }
+      .greeting { display: flex; align-items: end; justify-content: space-between; gap: 22px; margin-bottom: 23px; }
+      .kicker { margin: 0 0 7px; color: var(--app-accent); font-size: 9px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+      .today-title { margin: 0; font-size: clamp(24px, 3vw, 40px); line-height: .98; letter-spacing: -.07em; }
+      .today-subtitle { max-width: 370px; margin: 10px 0 0; color: var(--app-muted); font-size: 11px; line-height: 1.55; }
+      .today-date { color: var(--app-muted); font-size: 10px; white-space: nowrap; }
+      .learning-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 8px; }
+      .learning-card { min-height: 128px; padding: 15px; border: 1px solid var(--app-line); border-radius: 11px; background: var(--app-surface); box-shadow: 0 12px 30px rgba(40,41,80,.05); }
+      .learning-card.primary { grid-row: span 2; min-height: 264px; background: linear-gradient(145deg, var(--app-surface), var(--app-surface-2)); }
+      .card-label { display: flex; align-items: center; justify-content: space-between; color: var(--app-muted); font-size: 9px; }
+      .card-label strong { color: var(--app-accent); font-size: 9px; }
+      .resource-symbol { display: grid; width: 30px; height: 30px; place-items: center; margin: 26px 0 13px; border-radius: 9px; background: var(--app-accent-soft); color: var(--app-accent); font-size: 12px; font-weight: 800; }
+      .learning-card h3 { margin: 0; font-size: 15px; letter-spacing: -.04em; }
+      .learning-card p { margin: 6px 0 17px; color: var(--app-muted); font-size: 10px; line-height: 1.5; }
+      .progress-track { height: 5px; overflow: hidden; border-radius: 5px; background: var(--app-accent-soft); }
+      .progress-value { width: 72%; height: 100%; border-radius: inherit; background: var(--app-accent); }
+      .card-action { display: inline-flex; min-height: 29px; align-items: center; padding: 0 10px; border: 0; border-radius: 7px; background: var(--app-accent); color: #fff; font-size: 9px; font-weight: 750; }
+      .small-number { display: block; margin: 19px 0 4px; font-size: 27px; letter-spacing: -.08em; }
+      .small-note { color: var(--app-muted); font-size: 10px; }
+      .rhythm { margin-top: 8px; padding: 14px 15px; border: 1px solid var(--app-line); border-radius: 11px; background: var(--app-surface); }
+      .rhythm-head { display: flex; justify-content: space-between; margin-bottom: 13px; font-size: 10px; font-weight: 750; }
+      .rhythm-head span { color: var(--app-muted); font-weight: 400; }
+      .bars { display: flex; align-items: end; gap: 7px; height: 47px; }
+      .bar { flex: 1; height: var(--height); border-radius: 3px 3px 1px 1px; background: var(--app-accent-soft); }
+      .bar.active { background: var(--app-accent); }
+
+      .studio-layout { display: grid; grid-template-columns: 160px minmax(0, 1fr) 180px; min-height: 514px; }
+      .studio-sources { padding: 25px 14px; border-right: 1px solid var(--app-line); background: rgba(0,0,0,.05); }
+      .source-item { padding: 10px 9px; border-radius: 7px; color: var(--app-muted); font-size: 10px; line-height: 1.4; }
+      .source-item.active { background: var(--app-accent-soft); color: var(--app-text); }
+      .source-item small { display: block; margin-top: 4px; color: var(--app-muted); font-size: 8px; }
+      .studio-note { padding: 29px 32px; }
+      .note-meta { display: flex; justify-content: space-between; color: var(--app-muted); font-size: 9px; }
+      .note-title { margin: 32px 0 15px; font-size: clamp(23px, 3vw, 38px); line-height: 1.02; letter-spacing: -.065em; }
+      .note-line { width: 92%; height: 7px; margin: 13px 0; border-radius: 4px; background: var(--app-line); }
+      .note-line.short { width: 63%; }
+      .note-callout { margin: 24px 0; padding: 13px 15px; border-left: 2px solid var(--app-accent); background: var(--app-accent-soft); color: var(--app-text); font-size: 11px; line-height: 1.6; }
+      .studio-ai { padding: 25px 15px; border-left: 1px solid var(--app-line); background: rgba(0,0,0,.04); }
+      .ai-label { color: var(--app-accent); font-size: 9px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+      .ai-card { margin-top: 18px; padding: 13px; border: 1px solid var(--app-line); border-radius: 9px; background: var(--app-surface); color: var(--app-muted); font-size: 10px; line-height: 1.55; }
+      .ai-card strong { display: block; margin-bottom: 7px; color: var(--app-text); }
+      .ai-action { display: block; width: 100%; min-height: 28px; margin-top: 12px; border: 1px solid var(--app-line); border-radius: 6px; background: transparent; color: var(--app-text); font-size: 9px; }
+
+      .tutor-layout { min-height: 514px; padding: 29px 40px; }
+      .session-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+      .session-label { color: var(--app-muted); font-size: 10px; }
+      .session-progress { display: flex; align-items: center; gap: 8px; color: var(--app-muted); font-size: 9px; }
+      .session-progress i { display: block; width: 75px; height: 5px; overflow: hidden; border-radius: 5px; background: var(--app-accent-soft); }
+      .session-progress i::after { display: block; width: 63%; height: 100%; border-radius: inherit; background: var(--app-accent); content: ""; }
+      .question { max-width: 650px; margin: 0 auto; text-align: center; }
+      .question-kicker { margin-bottom: 13px; color: var(--app-accent); font-size: 9px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+      .question h2 { margin-bottom: 30px; font-size: clamp(24px, 4vw, 43px); line-height: 1.05; letter-spacing: -.07em; }
+      .answers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 520px; margin: 0 auto; text-align: left; }
+      .answer { padding: 15px; border: 1px solid var(--app-line); border-radius: 9px; background: var(--app-surface); color: var(--app-text); font-size: 10px; }
+      .answer.active { border-color: var(--app-accent); background: var(--app-accent-soft); }
+      .answer b { display: inline-grid; width: 18px; height: 18px; margin-right: 7px; place-items: center; border-radius: 50%; background: var(--app-surface-2); color: var(--app-muted); font-size: 9px; }
+      .tutor-hint { margin-top: 28px; color: var(--app-muted); font-size: 10px; }
+
+      .garden-layout { display: grid; grid-template-columns: minmax(0, 1fr) 205px; min-height: 514px; }
+      .garden-canvas { position: relative; min-height: 514px; overflow: hidden; padding: 29px 34px; background: radial-gradient(circle at 53% 48%, rgba(184,123,62,.12), transparent 12rem), var(--app-bg); }
+      .garden-title { position: relative; z-index: 1; margin-bottom: 6px; font-size: clamp(26px, 3.5vw, 42px); line-height: 1; letter-spacing: -.07em; }
+      .garden-subtitle { position: relative; z-index: 1; color: var(--app-muted); font-size: 10px; }
+      .garden-lines { position: absolute; inset: 55px 17% 25px 18%; }
+      .garden-lines i { position: absolute; height: 1px; transform-origin: left center; background: var(--app-line); }
+      .garden-lines i:nth-child(1) { top: 52%; left: 30%; width: 128px; transform: rotate(-28deg); }
+      .garden-lines i:nth-child(2) { top: 54%; left: 33%; width: 135px; transform: rotate(31deg); }
+      .garden-lines i:nth-child(3) { top: 56%; left: 67%; width: 100px; transform: rotate(-65deg); }
+      .garden-node { position: absolute; display: grid; width: 91px; height: 91px; place-items: center; border: 1px solid var(--app-line); border-radius: 50%; background: var(--app-surface); box-shadow: 0 12px 30px rgba(58,44,24,.09); color: var(--app-text); text-align: center; font-size: 10px; }
+      .garden-node strong { display: block; font-size: 9px; }
+      .garden-node small { display: block; margin-top: 4px; color: var(--app-muted); font-size: 8px; }
+      .garden-node.main { top: 39%; left: 42%; width: 121px; height: 121px; border-color: var(--app-accent); background: var(--app-accent-soft); }
+      .garden-node.one { top: 23%; left: 19%; }
+      .garden-node.two { top: 68%; left: 24%; }
+      .garden-node.three { top: 25%; right: 12%; }
+      .garden-node.four { right: 10%; bottom: 13%; }
+      .garden-side { padding: 27px 15px; border-left: 1px solid var(--app-line); background: var(--app-surface); }
+      .garden-side h3 { margin: 0 0 17px; font-size: 11px; }
+      .insight { padding: 11px 0; border-top: 1px solid var(--app-line); color: var(--app-muted); font-size: 10px; line-height: 1.5; }
+      .insight strong { display: block; margin-bottom: 5px; color: var(--app-text); }
+
+      .decision-panel { display: flex; min-height: 570px; flex-direction: column; padding: 25px; border: 1px solid var(--lab-line); border-radius: 21px; background: rgba(255,255,255,.045); }
+      .decision-panel h2 { margin-bottom: 11px; font-size: 24px; letter-spacing: -.05em; }
+      .decision-panel > p:not(.eyebrow):not(.panel-label):not(.feedback) { color: var(--lab-muted); font-size: 13px; line-height: 1.7; }
+      .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0 24px; }
+      .tag { padding: 5px 8px; border: 1px solid var(--lab-line); border-radius: 999px; color: #c8cbd5; font-size: 10px; }
+      .panel-label { margin: 0 0 10px; color: var(--lab-muted); font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+      .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 25px; }
+      .loop-step { position: relative; padding: 10px 5px; border: 1px solid var(--lab-line); border-radius: 8px; color: #c8cbd5; text-align: center; font-size: 9px; }
+      .loop-step:not(:last-child)::after { position: absolute; top: 50%; right: -7px; color: var(--lab-muted); content: "›"; font-size: 12px; transform: translateY(-50%); }
+      .fit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+      .fit-item { padding: 11px 12px; border: 1px solid var(--lab-line); border-radius: 10px; background: rgba(255,255,255,.035); }
+      .fit-item span { display: block; margin-bottom: 5px; color: var(--lab-muted); font-size: 9px; }
+      .fit-item strong { font-size: 14px; letter-spacing: -.04em; }
+      .recommendation { margin-top: 0; padding: 13px 14px; border: 1px solid var(--lab-line); border-radius: 12px; background: rgba(255,255,255,.035); }
+      .recommendation p { margin: 0; color: var(--lab-muted); font-size: 12px; line-height: 1.6; }
+      .recommendation .panel-label { margin-bottom: 6px; }
+      .panel-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 25px; }
+      .panel-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--lab-line); border-radius: 10px; background: transparent; color: var(--lab-text); font-size: 12px; cursor: pointer; transition: border-color 180ms ease, background 180ms ease; }
+      .panel-button:hover { border-color: rgba(193,195,255,.55); background: rgba(255,255,255,.08); }
+      .panel-button.primary { flex: 1; border-color: transparent; background: var(--lab-accent); color: #11121a; font-weight: 800; }
+      .panel-button.primary:hover { background: #b4b6ff; }
+      .feedback { min-height: 17px; margin: 11px 0 0; color: #8fe2ba; font-size: 11px; text-align: center; }
+
+      @media (max-width: 1080px) {
+        .directions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .workspace { grid-template-columns: 1fr; }
+        .decision-panel { min-height: auto; }
+        .panel-actions { margin-top: 0; }
+      }
+      @media (max-width: 700px) {
+        .shell { width: min(100% - 28px, 600px); padding-top: 18px; }
+        .lab-header { margin-bottom: 48px; }
+        .header-note { display: none; }
+        h1 { font-size: 48px; }
+        .directions { grid-template-columns: 1fr; }
+        .choice-card { display: grid; grid-template-columns: 118px 1fr; align-items: center; gap: 13px; }
+        .mini-preview { grid-row: span 2; height: 88px; }
+        .product-nav { display: none; }
+        .today-layout { grid-template-columns: 1fr; }
+        .product-sidebar, .studio-sources, .studio-ai, .garden-side { display: none; }
+        .today-main { padding: 22px 17px 30px; }
+        .greeting { display: block; }
+        .today-date { display: block; margin-top: 15px; }
+        .learning-grid { grid-template-columns: 1fr; }
+        .learning-card.primary { grid-row: auto; min-height: 220px; }
+        .studio-layout { grid-template-columns: 1fr; }
+        .studio-note { padding: 24px 18px; }
+        .tutor-layout { padding: 25px 16px; }
+        .answers { grid-template-columns: 1fr; }
+        .garden-canvas { min-height: 514px; padding: 25px 18px; }
+        .garden-node.main { left: 35%; }
+        .garden-node.one { left: 5%; }
+        .garden-node.two { left: 8%; }
+        .garden-node.three { right: 2%; }
+        .garden-node.four { right: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="lab-header">
+        <div class="brand"><span class="brand-mark">A</span><span>AI Nav / Learning product lab</span></div>
+        <span class="header-note">Choose the product loop before the visual system</span>
+      </header>
+
+      <section aria-labelledby="page-title">
+        <p class="eyebrow">Product direction exploration</p>
+        <h1 id="page-title">What should learning<br />feel like every day?</h1>
+        <p class="intro-copy">这次选择的不只是界面风格，而是用户每天打开 AI Nav 后要完成的核心动作。点击方向查看真实首页场景、学习闭环，以及与当前产品能力的复用程度。</p>
+      </section>
+
+      <section class="directions" aria-label="Learning product directions">
+        <button class="choice-card" data-choice="today" aria-pressed="false"><div class="mini-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-body"><div class="mini-side"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div><div><p class="choice-name">A · 今日学习台</p><p class="choice-description">继续学习、今日任务、待复习。</p></div></button>
+        <button class="choice-card" data-choice="studio" aria-pressed="true"><div class="mini-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-body"><div class="mini-side"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div><div><p class="choice-name">B · 研究工作室</p><p class="choice-description">资料、笔记、引用、AI 助手。</p></div></button>
+        <button class="choice-card" data-choice="tutor" aria-pressed="false"><div class="mini-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-body"><div class="mini-side"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div><div><p class="choice-name">C · AI 学习教练</p><p class="choice-description">一问一答、练习、即时反馈。</p></div></button>
+        <button class="choice-card" data-choice="garden" aria-pressed="false"><div class="mini-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-body"><div class="mini-side"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div><div><p class="choice-name">D · 知识花园</p><p class="choice-description">主题、卡片、笔记、知识连接。</p></div></button>
+      </section>
+
+      <section class="workspace" aria-live="polite">
+        <div class="preview-frame">
+          <div class="preview-chrome"><i class="chrome-dot"></i><i class="chrome-dot"></i><i class="chrome-dot"></i><span class="chrome-url" id="preview-url">ai-nav / research workspace</span></div>
+          <div class="product-preview" id="product-preview" data-product="studio"></div>
+        </div>
+
+        <aside class="decision-panel">
+          <p class="eyebrow">Selected product direction</p>
+          <h2 id="selected-title">今日学习台</h2>
+          <p id="selected-description">每天打开后，用户马上知道下一步学什么、哪些内容需要复习，以及上次学到哪里。</p>
+          <div class="tag-row" id="selected-tags"></div>
+          <p class="panel-label">Learning loop</p>
+          <div class="loop" id="selected-loop"></div>
+          <div class="fit"><div class="fit-item"><span>复用当前能力</span><strong id="selected-fit">高</strong></div><div class="fit-item"><span>新增产品复杂度</span><strong id="selected-cost">低</strong></div></div>
+          <div class="recommendation"><p class="panel-label">产品判断</p><p id="selected-reason">最适合从现有“工具收藏夹”渐进升级，不需要一开始就做完整课程平台。</p></div>
+          <div class="panel-actions"><button class="panel-button" id="copy-button">复制产品 brief</button><button class="panel-button primary" id="choose-button">选择这个方向</button></div>
+          <p class="feedback" id="feedback" role="status"></p>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const products = {
+        today: {
+          title: '今日学习台',
+          description: '每天打开后，用户马上知道下一步学什么、哪些内容需要复习，以及上次学到哪里。',
+          tags: ['Daily loop', 'Continue first', '低建设成本', '适合 MVP'],
+          loop: ['目标', '学习', '复习', '继续'],
+          fit: '高',
+          cost: '低',
+          reason: '最适合从现有“工具收藏夹”渐进升级，不需要一开始就做完整课程平台。',
+          brief: '方向：今日学习台。核心首页：继续学习、今日待复习、推荐下一步、学习资源库。优先复用：书签、分类、搜索、最近打开。',
+          preview: `
+            <div class="product-topbar"><div class="product-brand"><span class="product-mark">A</span><span>AI Nav Study</span></div><div class="product-nav"><span class="active">Today</span><span>Topics</span><span>Library</span><span>Review</span></div><span class="product-user"></span></div>
+            <div class="product-content today-layout"><aside class="product-sidebar"><p class="sidebar-label">Learning</p><div class="sidebar-list"><div class="sidebar-item active"><span>Today</span><span>01</span></div><div class="sidebar-item"><span>Continue</span><span>03</span></div><div class="sidebar-item"><span>Review</span><span>08</span></div><div class="sidebar-item"><span>Library</span><span>42</span></div></div></aside><div class="today-main"><div class="greeting"><div><p class="kicker">Your next best step</p><h2 class="today-title">Good morning,<br />Alex.</h2><p class="today-subtitle">Keep the rhythm light. One focused session is enough to move forward.</p></div><span class="today-date">Tuesday · Sep 12</span></div><div class="learning-grid"><article class="learning-card primary"><div class="card-label"><span>Continue learning</span><strong>72% complete</strong></div><span class="resource-symbol">P</span><h3>Product design fundamentals</h3><p>Chapter 04 · Understanding user needs</p><div class="progress-track"><div class="progress-value"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span class="small-note">18 min left</span><button class="card-action">Resume session</button></div></article><article class="learning-card"><div class="card-label"><span>Due today</span><strong style="color:var(--app-good)">Ready</strong></div><span class="small-number">08</span><span class="small-note">concepts to review</span></article><article class="learning-card"><div class="card-label"><span>Next up</span><strong>3 resources</strong></div><span class="small-number">03</span><span class="small-note">recommended for you</span></article></div><div class="rhythm"><div class="rhythm-head"><span>Learning rhythm</span><span>Last 7 days</span></div><div class="bars"><i class="bar" style="--height:32%"></i><i class="bar active" style="--height:68%"></i><i class="bar" style="--height:45%"></i><i class="bar active" style="--height:83%"></i><i class="bar active" style="--height:58%"></i><i class="bar" style="--height:70%"></i><i class="bar active" style="--height:92%"></i></div></div></div></div>`
+        },
+        studio: {
+          title: '研究工作室',
+          description: '围绕一个主题，把来源、笔记、引用和 AI 助手放进同一个工作空间，适合深度研究型学习。',
+          tags: ['Paper + ink', 'Deep work', 'Source-first', '中等建设成本'],
+          loop: ['收集', '阅读', '提炼', '写作'],
+          fit: '中',
+          cost: '中',
+          reason: '差异化很强，但需要新增笔记、来源引用和工作空间模型，适合第二阶段。',
+          brief: '方向：研究工作室。核心首页：主题工作区、来源列表、可编辑笔记、AI 提炼助手。配色：纸张白 + 深海蓝 + 琥珀标注。新增：notes、sources、workspace。',
+          preview: `
+            <div class="product-topbar"><div class="product-brand"><span class="product-mark">A</span><span>AI Nav Studio</span></div><div class="product-nav"><span class="active">Workspace</span><span>Sources</span><span>Notes</span><span>Export</span></div><span class="product-user"></span></div>
+            <div class="product-content studio-layout"><aside class="studio-sources"><p class="sidebar-label">Sources · 12</p><div class="source-item active">The design of everyday things<small>Article · 8 min read</small></div><div class="source-item">User research basics<small>Video · 24 min</small></div><div class="source-item">Interview synthesis<small>PDF · 12 pages</small></div></aside><article class="studio-note"><div class="note-meta"><span>Product design / Notes</span><span>Saved just now</span></div><h2 class="note-title">Understanding<br />user needs.</h2><div class="note-line"></div><div class="note-line short"></div><div class="note-callout">Insight · Users are not asking for more features. They are asking for less uncertainty.</div><div class="note-line"></div><div class="note-line short"></div></article><aside class="studio-ai"><span class="ai-label">AI guide</span><div class="ai-card"><strong>Make this useful</strong>Turn the selected sources into three testable design principles.<button class="ai-action">Generate principles</button></div><div class="ai-card"><strong>Keep exploring</strong>2 related sources found<button class="ai-action">Review sources</button></div></aside></div>`
+        },
+        tutor: {
+          title: 'AI 学习教练',
+          description: '把学习拆成一个个短会话，通过提问、选择、解释和反馈，让用户在练习中掌握知识。',
+          tags: ['Active recall', 'Short sessions', 'Instant feedback', '高建设成本'],
+          loop: ['提问', '回答', '解释', '巩固'],
+          fit: '低',
+          cost: '高',
+          reason: '学习体验最完整，但需要题目生成、答案评估、会话状态和学习记录。',
+          brief: '方向：AI 学习教练。核心首页：当前会话、问题卡、答案反馈、下一题。新增：sessions、questions、answers、progress。',
+          preview: `
+            <div class="product-topbar"><div class="product-brand"><span class="product-mark">A</span><span>AI Tutor</span></div><div class="product-nav"><span class="active">Session</span><span>Practice</span><span>Progress</span></div><span class="product-user"></span></div>
+            <div class="product-content tutor-layout"><div class="session-head"><span class="session-label">Session 04 · Product design fundamentals</span><span class="session-progress"><i></i> 06 / 10</span></div><div class="question"><p class="question-kicker">Active recall</p><h2>What makes a good<br />learning question?</h2><div class="answers"><div class="answer active"><b>A</b> It asks for a concrete decision.</div><div class="answer"><b>B</b> It contains as much context as possible.</div><div class="answer"><b>C</b> It has only one possible wording.</div><div class="answer"><b>D</b> It avoids uncertainty.</div></div><p class="tutor-hint">Select an answer · You can ask AI for a hint</p></div></div>`
+        },
+        garden: {
+          title: '知识花园',
+          description: '把零散的学习资源逐渐长成主题、观点和连接，强调长期积累而不是完成任务。',
+          tags: ['Long-term memory', 'Knowledge graph', 'Reflective', '高建设成本'],
+          loop: ['输入', '连接', '反思', '生长'],
+          fit: '低',
+          cost: '高',
+          reason: '品牌感和长期价值最高，但需要标签、关联、双向链接和知识图谱能力。',
+          brief: '方向：知识花园。核心首页：主题节点、知识连接、最近洞察、待整理素材。新增：notes、links、tags、graph。',
+          preview: `
+            <div class="product-topbar"><div class="product-brand"><span class="product-mark">A</span><span>AI Nav Garden</span></div><div class="product-nav"><span class="active">Garden</span><span>Inbox</span><span>Explore</span></div><span class="product-user"></span></div>
+            <div class="product-content garden-layout"><div class="garden-canvas"><p class="kicker">Your ideas are growing</p><h2 class="garden-title">Knowledge<br />garden.</h2><p class="garden-subtitle">42 notes · 8 connections made this week</p><div class="garden-lines"><i></i><i></i><i></i></div><div class="garden-node main"><div><strong>Product<br />thinking</strong><small>12 notes</small></div></div><div class="garden-node one"><div><strong>User<br />needs</strong><small>8 notes</small></div></div><div class="garden-node two"><div><strong>Research</strong><small>6 notes</small></div></div><div class="garden-node three"><div><strong>Systems</strong><small>5 notes</small></div></div><div class="garden-node four"><div><strong>Writing</strong><small>4 notes</small></div></div></div><aside class="garden-side"><h3>Recent insights</h3><div class="insight"><strong>Less uncertainty</strong>Users value clear next steps more than feature count.</div><div class="insight"><strong>Learning loops</strong>Recall turns reading into something you can use.</div><div class="insight"><strong>Suggested connection</strong>Research → Product thinking</div></aside></div>`
+        }
+      };
+
+      const preview = document.querySelector('#product-preview');
+      const title = document.querySelector('#selected-title');
+      const description = document.querySelector('#selected-description');
+      const tags = document.querySelector('#selected-tags');
+      const loop = document.querySelector('#selected-loop');
+      const fit = document.querySelector('#selected-fit');
+      const cost = document.querySelector('#selected-cost');
+      const feedback = document.querySelector('#feedback');
+      const previewUrl = document.querySelector('#preview-url');
+      const previewPaths = { today: 'learning today', studio: 'research workspace', tutor: 'ai tutor session', garden: 'knowledge garden' };
+      let selected = 'studio';
+
+      function render(choice) {
+        const product = products[choice];
+        selected = choice;
+        preview.dataset.product = choice;
+        previewUrl.textContent = `ai-nav / ${previewPaths[choice]}`;
+        preview.innerHTML = product.preview;
+        title.textContent = product.title;
+        description.textContent = product.description;
+        tags.innerHTML = product.tags.map((tag) => `<span class="tag">${tag}</span>`).join('');
+        loop.innerHTML = product.loop.map((step) => `<span class="loop-step">${step}</span>`).join('');
+        fit.textContent = product.fit;
+        cost.textContent = product.cost;
+        document.querySelectorAll('.choice-card').forEach((card) => card.setAttribute('aria-pressed', String(card.dataset.choice === choice)));
+        feedback.textContent = '';
+      }
+
+      document.querySelectorAll('.choice-card').forEach((card) => card.addEventListener('click', () => render(card.dataset.choice)));
+      document.querySelector('#copy-button').addEventListener('click', async () => {
+        const brief = products[selected].brief;
+        try {
+          await navigator.clipboard.writeText(brief);
+          feedback.textContent = '产品 brief 已复制';
+        } catch {
+          feedback.textContent = brief;
+        }
+      });
+      document.querySelector('#choose-button').addEventListener('click', () => {
+        feedback.textContent = `已选择「${products[selected].title}」，可以进入实现阶段`;
+      });
+      render(selected);
+    </script>
+  </body>
+</html>

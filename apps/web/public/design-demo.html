@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>AI Nav · Premium direction lab</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --lab-bg: #0c0d11;
+        --lab-panel: #15171d;
+        --lab-panel-2: #1c1f27;
+        --lab-text: #f4f4f5;
+        --lab-muted: #969aa7;
+        --lab-line: rgba(255, 255, 255, .1);
+        --lab-accent: #8b8ff8;
+        --lab-accent-soft: rgba(139, 143, 248, .14);
+        --lab-shadow: 0 24px 80px rgba(0, 0, 0, .32);
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--lab-bg); }
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--lab-text);
+        background:
+          radial-gradient(circle at 14% 0%, rgba(104, 114, 255, .13), transparent 31rem),
+          radial-gradient(circle at 90% 30%, rgba(255, 180, 100, .06), transparent 30rem),
+          var(--lab-bg);
+      }
+
+      button { font: inherit; }
+      button:focus-visible { outline: 2px solid #b9bbff; outline-offset: 3px; }
+      .shell { width: min(1440px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 64px; }
+
+      .lab-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 70px;
+      }
+      .brand { display: flex; align-items: center; gap: 11px; font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+      .brand-mark {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 9px;
+        background: linear-gradient(145deg, #f5f5f7, #777bff);
+        color: #12131a;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .header-note { color: var(--lab-muted); font-size: 12px; }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: #aeb2ff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { max-width: 720px; margin-bottom: 18px; font-size: clamp(38px, 6vw, 78px); line-height: .98; letter-spacing: -.065em; }
+      .intro-copy { max-width: 610px; margin-bottom: 38px; color: var(--lab-muted); font-size: 16px; line-height: 1.7; }
+
+      .directions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .choice-card {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 16px;
+        padding: 14px;
+        border: 1px solid var(--lab-line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, .035);
+        color: var(--lab-text);
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+      }
+      .choice-card:hover { transform: translateY(-2px); border-color: rgba(190, 192, 255, .5); background: rgba(255, 255, 255, .07); }
+      .choice-card[aria-pressed="true"] { border-color: var(--card-accent); background: var(--card-soft); box-shadow: 0 0 0 1px var(--card-accent), 0 20px 50px rgba(0, 0, 0, .18); }
+      .choice-card[aria-pressed="true"]::after {
+        position: absolute;
+        top: 13px;
+        right: 13px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--card-accent);
+        box-shadow: 0 0 0 5px var(--card-soft);
+        content: "";
+      }
+      .choice-card[data-choice="quiet"] { --card-accent: #ba8748; --card-soft: rgba(186, 135, 72, .13); }
+      .choice-card[data-choice="cinema"] { --card-accent: #8b8ff8; --card-soft: rgba(139, 143, 248, .14); }
+      .choice-card[data-choice="liquid"] { --card-accent: #62d6ce; --card-soft: rgba(98, 214, 206, .13); }
+      .choice-card[data-choice="swiss"] { --card-accent: #ff6258; --card-soft: rgba(255, 98, 88, .13); }
+      .choice-preview { height: 112px; padding: 10px; overflow: hidden; border-radius: 12px; background: #23252c; }
+      .choice-preview .mini-top { display: flex; align-items: center; justify-content: space-between; height: 10px; margin-bottom: 11px; }
+      .choice-preview .mini-brand { width: 34px; height: 5px; border-radius: 2px; background: rgba(255,255,255,.82); }
+      .choice-preview .mini-actions { display: flex; gap: 4px; }
+      .choice-preview .mini-actions i { display: block; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.35); }
+      .choice-preview .mini-grid { display: grid; grid-template-columns: 28px 1fr; gap: 8px; height: 75px; }
+      .choice-preview .mini-nav { border-right: 1px solid rgba(255,255,255,.12); }
+      .choice-preview .mini-nav i { display: block; width: 15px; height: 4px; margin: 7px 0; border-radius: 2px; background: rgba(255,255,255,.25); }
+      .choice-preview .mini-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; align-content: start; }
+      .choice-preview .mini-block { min-height: 28px; border: 1px solid rgba(255,255,255,.11); border-radius: 5px; background: rgba(255,255,255,.07); }
+      .choice-preview .mini-block:first-child { grid-column: 1 / -1; min-height: 20px; }
+      .choice-card[data-choice="quiet"] .choice-preview { background: #f1eee9; }
+      .choice-card[data-choice="quiet"] .mini-brand, .choice-card[data-choice="quiet"] .mini-nav i { background: #211f1b; }
+      .choice-card[data-choice="quiet"] .mini-actions i { background: #ba8748; }
+      .choice-card[data-choice="quiet"] .mini-nav { border-color: rgba(33,31,27,.18); }
+      .choice-card[data-choice="quiet"] .mini-block { border-color: rgba(33,31,27,.12); background: rgba(255,255,255,.58); }
+      .choice-card[data-choice="liquid"] .choice-preview { background: linear-gradient(130deg, #263d4a, #263044 52%, #1b2435); }
+      .choice-card[data-choice="liquid"] .mini-block:nth-child(2) { background: linear-gradient(135deg, rgba(98,214,206,.6), rgba(139,143,248,.16)); }
+      .choice-card[data-choice="swiss"] .choice-preview { background: #f2f0eb; }
+      .choice-card[data-choice="swiss"] .mini-brand, .choice-card[data-choice="swiss"] .mini-nav i { background: #151515; }
+      .choice-card[data-choice="swiss"] .mini-actions i { background: #ff6258; }
+      .choice-card[data-choice="swiss"] .mini-nav { border-color: rgba(21,21,21,.18); }
+      .choice-card[data-choice="swiss"] .mini-block { border: 0; border-radius: 0; background: #e0ded9; }
+      .choice-card[data-choice="swiss"] .mini-block:nth-child(2) { background: #ff6258; }
+      .choice-name { margin: 0 0 4px; font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+      .choice-description { margin: 0; color: var(--lab-muted); font-size: 12px; line-height: 1.5; }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(290px, .7fr);
+        gap: 18px;
+        align-items: stretch;
+      }
+      .preview-frame {
+        min-width: 0;
+        padding: 11px;
+        border: 1px solid var(--lab-line);
+        border-radius: 25px;
+        background: #1a1c23;
+        box-shadow: var(--lab-shadow);
+      }
+      .preview-chrome { display: flex; align-items: center; gap: 6px; height: 25px; padding: 0 7px; color: #767a88; font-size: 10px; }
+      .chrome-dot { width: 7px; height: 7px; border-radius: 50%; background: #4f525c; }
+      .chrome-url { margin-left: 8px; opacity: .7; }
+      .app-preview {
+        --preview-bg: #0a0a0f;
+        --preview-surface: #11131a;
+        --preview-surface-2: #171a23;
+        --preview-text: #f2f3f7;
+        --preview-muted: #898e9c;
+        --preview-line: rgba(255,255,255,.1);
+        --preview-accent: #8b8ff8;
+        --preview-accent-soft: rgba(139,143,248,.13);
+        --preview-shadow: 0 12px 30px rgba(0,0,0,.28);
+        position: relative;
+        min-height: 560px;
+        overflow: hidden;
+        border: 1px solid var(--preview-line);
+        border-radius: 17px;
+        background: var(--preview-bg);
+        color: var(--preview-text);
+        transition: background 280ms ease, color 280ms ease;
+      }
+      .app-preview::before { position: absolute; inset: -25% -5% auto auto; width: 55%; height: 55%; border-radius: 50%; background: var(--preview-glow, transparent); filter: blur(60px); opacity: .65; pointer-events: none; content: ""; }
+      .app-preview[data-theme="quiet"] {
+        --preview-bg: #f4f1ec;
+        --preview-surface: #fffdfa;
+        --preview-surface-2: #ebe7e0;
+        --preview-text: #26231f;
+        --preview-muted: #7f7970;
+        --preview-line: rgba(47,42,35,.13);
+        --preview-accent: #9a6a36;
+        --preview-accent-soft: rgba(154,106,54,.12);
+        --preview-shadow: 0 15px 35px rgba(83,63,36,.11);
+        --preview-glow: rgba(188, 133, 62, .14);
+      }
+      .app-preview[data-theme="liquid"] {
+        --preview-bg: #111a25;
+        --preview-surface: rgba(255,255,255,.08);
+        --preview-surface-2: rgba(255,255,255,.12);
+        --preview-text: #eefbfb;
+        --preview-muted: #99b6bc;
+        --preview-line: rgba(186,255,250,.18);
+        --preview-accent: #62d6ce;
+        --preview-accent-soft: rgba(98,214,206,.14);
+        --preview-shadow: 0 15px 40px rgba(0,0,0,.24);
+        --preview-glow: rgba(70, 207, 209, .2);
+      }
+      .app-preview[data-theme="swiss"] {
+        --preview-bg: #f2f0eb;
+        --preview-surface: #fffefa;
+        --preview-surface-2: #e4e1da;
+        --preview-text: #141414;
+        --preview-muted: #706d68;
+        --preview-line: rgba(20,20,20,.14);
+        --preview-accent: #ff6258;
+        --preview-accent-soft: rgba(255,98,88,.13);
+        --preview-shadow: none;
+        --preview-glow: transparent;
+      }
+      .preview-appbar { position: relative; display: flex; justify-content: space-between; align-items: center; height: 54px; padding: 0 21px; border-bottom: 1px solid var(--preview-line); background: color-mix(in srgb, var(--preview-bg) 78%, transparent); }
+      .app-preview[data-theme="cinema"] .preview-appbar, .app-preview[data-theme="liquid"] .preview-appbar { backdrop-filter: blur(18px) saturate(150%); }
+      .preview-brand { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 750; letter-spacing: -.03em; }
+      .preview-mark { display: grid; width: 21px; height: 21px; place-items: center; border-radius: 6px; background: var(--preview-text); color: var(--preview-bg); font-size: 9px; font-weight: 800; }
+      .preview-actions { display: flex; align-items: center; gap: 8px; }
+      .preview-icon { width: 24px; height: 24px; border: 1px solid var(--preview-line); border-radius: 50%; background: transparent; }
+      .preview-cta { height: 28px; padding: 0 11px; border: 0; border-radius: 999px; background: var(--preview-accent); color: #fff; font-size: 10px; font-weight: 700; }
+      .preview-body { position: relative; display: grid; grid-template-columns: 144px minmax(0, 1fr); min-height: 506px; }
+      .preview-sidebar { padding: 25px 13px; border-right: 1px solid var(--preview-line); background: color-mix(in srgb, var(--preview-surface) 46%, transparent); }
+      .preview-sidebar-label { margin: 0 8px 10px; color: var(--preview-muted); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      .preview-nav { display: grid; gap: 3px; }
+      .preview-nav-item { display: flex; align-items: center; justify-content: space-between; min-height: 28px; padding: 0 8px; border-radius: 6px; color: var(--preview-muted); font-size: 10px; }
+      .preview-nav-item.active { background: var(--preview-accent-soft); color: var(--preview-text); font-weight: 700; }
+      .preview-nav-item span:last-child { opacity: .6; font-size: 8px; }
+      .preview-main { min-width: 0; padding: 26px 30px 40px; }
+      .preview-main-top { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 23px; }
+      .preview-kicker { margin: 0 0 7px; color: var(--preview-accent); font-size: 9px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+      .preview-title { margin: 0; font-size: clamp(24px, 3vw, 39px); line-height: .98; letter-spacing: -.07em; }
+      .preview-subtitle { max-width: 330px; margin: 10px 0 0; color: var(--preview-muted); font-size: 11px; line-height: 1.6; }
+      .preview-search { display: flex; align-items: center; gap: 8px; min-width: 140px; height: 34px; padding: 0 11px; border: 1px solid var(--preview-line); border-radius: 9px; background: var(--preview-surface); color: var(--preview-muted); font-size: 10px; box-shadow: var(--preview-shadow); }
+      .preview-search i { width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; opacity: .7; }
+      .preview-section-head { display: flex; align-items: center; justify-content: space-between; margin: 25px 0 11px; }
+      .preview-section-head h3 { margin: 0; font-size: 11px; }
+      .preview-section-head span { color: var(--preview-muted); font-size: 9px; }
+      .preview-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+      .preview-tool { min-height: 103px; padding: 12px; border: 1px solid var(--preview-line); border-radius: 10px; background: var(--preview-surface); box-shadow: var(--preview-shadow); transition: transform 180ms ease, border-color 180ms ease; }
+      .preview-tool:hover { transform: translateY(-2px); border-color: var(--preview-accent); }
+      .preview-tool-top { display: flex; align-items: center; justify-content: space-between; }
+      .tool-logo { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 7px; background: var(--preview-accent-soft); color: var(--preview-accent); font-size: 9px; font-weight: 800; }
+      .tool-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--preview-muted); }
+      .preview-tool strong { display: block; margin-top: 14px; font-size: 11px; }
+      .preview-tool small { display: block; margin-top: 4px; color: var(--preview-muted); font-size: 9px; }
+      .app-preview[data-theme="quiet"] .preview-tool, .app-preview[data-theme="swiss"] .preview-tool { border-radius: 5px; }
+      .app-preview[data-theme="liquid"] .preview-tool { border-color: rgba(186,255,250,.18); backdrop-filter: blur(16px); }
+      .app-preview[data-theme="swiss"] .preview-tool:nth-child(2) { background: var(--preview-accent); color: #fff; }
+      .app-preview[data-theme="swiss"] .preview-tool:nth-child(2) small { color: rgba(255,255,255,.72); }
+      .preview-lower { display: grid; grid-template-columns: 1.2fr .8fr; gap: 8px; margin-top: 8px; }
+      .preview-status { min-height: 76px; padding: 13px; border: 1px solid var(--preview-line); border-radius: 10px; background: var(--preview-surface-2); }
+      .preview-status-label { color: var(--preview-muted); font-size: 9px; }
+      .preview-status strong { display: block; margin-top: 7px; font-size: 17px; letter-spacing: -.04em; }
+      .preview-status strong em { color: var(--preview-accent); font-style: normal; }
+
+      .decision-panel { display: flex; flex-direction: column; padding: 25px; border: 1px solid var(--lab-line); border-radius: 21px; background: rgba(255,255,255,.045); }
+      .decision-panel h2 { margin-bottom: 11px; font-size: 24px; letter-spacing: -.05em; }
+      .decision-panel p { color: var(--lab-muted); font-size: 13px; line-height: 1.7; }
+      .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 24px; }
+      .tag { padding: 5px 8px; border: 1px solid var(--lab-line); border-radius: 999px; color: #c8cbd5; font-size: 10px; }
+      .panel-label { margin: 0 0 10px; color: var(--lab-muted); font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+      .swatches { display: flex; gap: 8px; margin-bottom: 24px; }
+      .swatch { position: relative; width: 31px; height: 31px; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; }
+      .swatch span { position: absolute; top: 36px; left: 0; color: var(--lab-muted); font-family: ui-monospace, monospace; font-size: 8px; white-space: nowrap; }
+      .recommendation { margin-top: 17px; padding: 13px 14px; border: 1px solid var(--lab-line); border-radius: 12px; background: rgba(255,255,255,.035); }
+      .recommendation p { margin: 0; font-size: 12px; }
+      .panel-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 25px; }
+      .panel-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--lab-line); border-radius: 10px; background: transparent; color: var(--lab-text); font-size: 12px; cursor: pointer; transition: background 180ms ease, border-color 180ms ease; }
+      .panel-button:hover { border-color: rgba(190,192,255,.55); background: rgba(255,255,255,.08); }
+      .panel-button.primary { flex: 1; border-color: transparent; background: var(--lab-accent); color: #11121b; font-weight: 800; }
+      .panel-button.primary:hover { background: #aeb1ff; }
+      .copy-feedback { min-height: 17px; margin: 11px 0 0; color: #8fe2ba; font-size: 11px; text-align: center; }
+
+      @media (max-width: 1050px) {
+        .directions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .workspace { grid-template-columns: 1fr; }
+        .decision-panel { min-height: auto; }
+        .panel-actions { margin-top: 0; }
+      }
+      @media (max-width: 680px) {
+        .shell { width: min(100% - 28px, 600px); padding-top: 18px; }
+        .lab-header { margin-bottom: 48px; }
+        .header-note { display: none; }
+        h1 { font-size: 48px; }
+        .directions { grid-template-columns: 1fr; }
+        .choice-card { display: grid; grid-template-columns: 118px 1fr; align-items: center; gap: 13px; }
+        .choice-preview { grid-row: span 2; height: 88px; }
+        .preview-body { grid-template-columns: 1fr; }
+        .preview-sidebar { display: none; }
+        .preview-main { padding: 22px 17px 30px; }
+        .preview-main-top { display: block; }
+        .preview-search { margin-top: 17px; }
+        .preview-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .preview-tool:nth-child(3) { display: none; }
+        .preview-lower { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="lab-header">
+        <div class="brand"><span class="brand-mark">A</span><span>AI Nav / Direction lab</span></div>
+        <span class="header-note">Choose a visual language before implementation</span>
+      </header>
+
+      <section aria-labelledby="page-title">
+        <p class="eyebrow">Premium interface exploration</p>
+        <h1 id="page-title">Which kind of<br />premium feels right?</h1>
+        <p class="intro-copy">四种方向都沿用 AI Nav 现有的工具库结构。点击卡片查看完整预览、配色和适用场景，选定后再进入正式实现。</p>
+      </section>
+
+      <section class="directions" aria-label="Visual directions">
+        <button class="choice-card" data-choice="quiet" aria-pressed="false">
+          <div class="choice-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-grid"><div class="mini-nav"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div>
+          <div><p class="choice-name">A · Quiet Luxury</p><p class="choice-description">暖白、细线、克制的金色点缀。</p></div>
+        </button>
+        <button class="choice-card" data-choice="cinema" aria-pressed="true">
+          <div class="choice-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-grid"><div class="mini-nav"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div>
+          <div><p class="choice-name">B · Cinematic AI Pro</p><p class="choice-description">深色、靛蓝环境光、轻玻璃层。</p></div>
+        </button>
+        <button class="choice-card" data-choice="liquid" aria-pressed="false">
+          <div class="choice-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-grid"><div class="mini-nav"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div>
+          <div><p class="choice-name">C · Liquid Glass</p><p class="choice-description">流动渐变、透明表面、强记忆点。</p></div>
+        </button>
+        <button class="choice-card" data-choice="swiss" aria-pressed="false">
+          <div class="choice-preview" aria-hidden="true"><div class="mini-top"><span class="mini-brand"></span><span class="mini-actions"><i></i><i></i></span></div><div class="mini-grid"><div class="mini-nav"><i></i><i></i><i></i></div><div class="mini-content"><i class="mini-block"></i><i class="mini-block"></i><i class="mini-block"></i></div></div></div>
+          <div><p class="choice-name">D · Swiss Bento</p><p class="choice-description">黑白网格、强排版、效率优先。</p></div>
+        </button>
+      </section>
+
+      <section class="workspace" aria-live="polite">
+        <div class="preview-frame">
+          <div class="preview-chrome"><i class="chrome-dot"></i><i class="chrome-dot"></i><i class="chrome-dot"></i><span class="chrome-url">ai-nav / your tools</span></div>
+          <div class="app-preview" data-theme="cinema">
+            <div class="preview-appbar"><div class="preview-brand"><span class="preview-mark">A</span><span>AI Nav</span></div><div class="preview-actions"><span class="preview-icon"></span><span class="preview-icon"></span><button class="preview-cta">Add tool</button></div></div>
+            <div class="preview-body">
+              <aside class="preview-sidebar"><p class="preview-sidebar-label">Library</p><nav class="preview-nav"><div class="preview-nav-item active"><span>All tools</span><span>12</span></div><div class="preview-nav-item"><span>Generate</span><span>04</span></div><div class="preview-nav-item"><span>Research</span><span>03</span></div><div class="preview-nav-item"><span>Build</span><span>05</span></div></nav></aside>
+              <div class="preview-main">
+                <div class="preview-main-top"><div><p class="preview-kicker">Personal command center</p><h2 class="preview-title">Your tools,<br />in rhythm.</h2><p class="preview-subtitle">A calm home for the AI tools you use every day.</p></div><div class="preview-search"><i></i><span>Search tools</span><span style="margin-left:auto;opacity:.6">⌘ K</span></div></div>
+                <div class="preview-section-head"><h3>Recently used</h3><span>View all →</span></div>
+                <div class="preview-tools"><article class="preview-tool"><div class="preview-tool-top"><span class="tool-logo">P</span><span class="tool-dot"></span></div><strong>Perplexity</strong><small>Research assistant</small></article><article class="preview-tool"><div class="preview-tool-top"><span class="tool-logo">F</span><span class="tool-dot"></span></div><strong>Figma</strong><small>Design workspace</small></article><article class="preview-tool"><div class="preview-tool-top"><span class="tool-logo">C</span><span class="tool-dot"></span></div><strong>Claude</strong><small>Thinking partner</small></article></div>
+                <div class="preview-section-head"><h3>Workspace pulse</h3><span>This week</span></div>
+                <div class="preview-lower"><div class="preview-status"><span class="preview-status-label">Tools in rotation</span><strong>12 <em>+3</em></strong></div><div class="preview-status"><span class="preview-status-label">Focus streak</span><strong>08 days</strong></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="decision-panel">
+          <p class="eyebrow">Selected direction</p>
+          <h2 id="selected-title">Cinematic AI Pro</h2>
+          <p id="selected-description">把 AI Nav 做成一个安静、专业、有深度的 command center。深色层次和靛蓝环境光提供高级感，但信息仍然保持清晰。</p>
+          <div class="tag-row" id="selected-tags"></div>
+          <p class="panel-label">Palette</p>
+          <div class="swatches" id="selected-swatches"></div>
+          <div class="recommendation"><p class="panel-label">适合 AI Nav 的原因</p><p id="selected-reason">它最贴合“个人 AI 工具库”的专业属性，也能沿用现在的深色主题基础。</p></div>
+          <div class="panel-actions"><button class="panel-button" id="copy-button">Copy tokens</button><button class="panel-button primary" id="choose-button">Choose this direction</button></div>
+          <p class="copy-feedback" id="copy-feedback" role="status"></p>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const directions = {
+        quiet: {
+          title: 'Quiet Luxury',
+          description: '把 AI Nav 做成一个安静、成熟的个人工作台。暖白背景、细边界和少量金色让质感来自留白与比例。',
+          tags: ['暖白主题', '细边框', 'Editorial', '低装饰'],
+          colors: [['#F4F1EC', '#F4F1EC'], ['#26231F', '#26231F'], ['#9A6A36', '#9A6A36'], ['#FFF D F A'.replaceAll(' ', ''), '#FFFDFA']],
+          reason: '适合希望产品显得稳重、耐用、像一件长期使用的个人工具。',
+          tokens: '--bg: #F4F1EC; --surface: #FFFDFA; --text: #26231F; --accent: #9A6A36;'
+        },
+        cinema: {
+          title: 'Cinematic AI Pro',
+          description: '把 AI Nav 做成一个安静、专业、有深度的 command center。深色层次和靛蓝环境光提供高级感，但信息仍然保持清晰。',
+          tags: ['Dark-first', 'AI native', 'Ambient glow', 'Light glass'],
+          colors: [['#0A0A0F', '#0A0A0F'], ['#11131A', '#11131A'], ['#8B8FF8', '#8B8FF8'], ['#F2F3F7', '#F2F3F7']],
+          reason: '它最贴合“个人 AI 工具库”的专业属性，也能沿用现在的深色主题基础。',
+          tokens: '--bg: #0A0A0F; --surface: #11131A; --text: #F2F3F7; --accent: #8B8FF8;'
+        },
+        liquid: {
+          title: 'Liquid Glass',
+          description: '把 AI Nav 做成一个有记忆点的视觉体验。透明表面、青绿色光晕和渐变让界面更像下一代 AI 产品。',
+          tags: ['Glass', 'Iridescent', 'Fluid motion', 'Expressive'],
+          colors: [['#111A25', '#111A25'], ['#FFFFFF14', '#FFFFFF'], ['#62D6CE', '#62D6CE'], ['#8B8FF8', '#8B8FF8']],
+          reason: '适合想让产品第一眼更惊艳，但需要严格限制毛玻璃层级并照顾性能。',
+          tokens: '--bg: #111A25; --surface: rgba(255,255,255,.08); --text: #EEF B FB'.replaceAll(' ', '') + '; --accent: #62D6CE;'
+        },
+        swiss: {
+          title: 'Swiss Bento',
+          description: '把 AI Nav 做成一个精确、高效的工具面板。强排版、黑白基底和少量珊瑚红让重点一眼可见。',
+          tags: ['Bento grid', 'Typography-led', 'Fast', 'High clarity'],
+          colors: [['#F2F0EB', '#F2F0EB'], ['#141414', '#141414'], ['#FF6258', '#FF6258'], ['#FFF E FA'.replaceAll(' ', ''), '#FFFEFA']],
+          reason: '适合工具数量较多、希望用户快速扫描和定位工具的使用场景。',
+          tokens: '--bg: #F2F0EB; --surface: #FFFEFA; --text: #141414; --accent: #FF6258;'
+        }
+      };
+
+      const preview = document.querySelector('.app-preview');
+      const title = document.querySelector('#selected-title');
+      const description = document.querySelector('#selected-description');
+      const tags = document.querySelector('#selected-tags');
+      const swatches = document.querySelector('#selected-swatches');
+      const reason = document.querySelector('#selected-reason');
+      const feedback = document.querySelector('#copy-feedback');
+      let selected = 'cinema';
+
+      function render(choice) {
+        const direction = directions[choice];
+        selected = choice;
+        preview.dataset.theme = choice;
+        title.textContent = direction.title;
+        description.textContent = direction.description;
+        reason.textContent = direction.reason;
+        tags.innerHTML = direction.tags.map((tag) => `<span class="tag">${tag}</span>`).join('');
+        swatches.innerHTML = direction.colors.map(([color, label]) => `<span class="swatch" style="background:${color}" title="${label}"><span>${label}</span></span>`).join('');
+        document.querySelectorAll('.choice-card').forEach((card) => card.setAttribute('aria-pressed', String(card.dataset.choice === choice)));
+        feedback.textContent = '';
+      }
+
+      document.querySelectorAll('.choice-card').forEach((card) => card.addEventListener('click', () => render(card.dataset.choice)));
+      document.querySelector('#copy-button').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(directions[selected].tokens);
+          feedback.textContent = 'Tokens copied';
+        } catch {
+          feedback.textContent = directions[selected].tokens;
+        }
+      });
+      document.querySelector('#choose-button').addEventListener('click', () => {
+        feedback.textContent = `${directions[selected].title} selected — ready to implement`;
+      });
+      render(selected);
+    </script>
+  </body>
+</html>
