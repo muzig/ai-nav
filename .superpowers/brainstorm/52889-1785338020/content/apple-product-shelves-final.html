@@ -1,0 +1,47 @@
+<style>
+  .app{overflow:hidden;border:1px solid #d2d2d7;border-radius:18px;background:#f5f5f7;color:#1d1d1f;box-shadow:0 20px 60px rgba(0,0,0,.10);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}.bar{display:flex;align-items:center;justify-content:space-between;height:38px;padding:0 18px;border-bottom:1px solid #e3e3e6;background:rgba(250,250,252,.92)}.brand{font-size:11px;font-weight:650;letter-spacing:-.03em}.bar-actions{display:flex;gap:15px;color:#6e6e73;font-size:9px}.shell{display:grid;grid-template-columns:164px minmax(0,1fr)}
+  aside{padding:18px 13px;border-right:1px solid #e1e1e4;background:#fbfbfd}.outline-title{margin:2px 9px 9px;color:#86868b;font-size:8px;font-weight:600}.outline{display:grid;gap:2px}.outline a{display:flex;justify-content:space-between;padding:7px 9px;border-radius:7px;color:#515154;font-size:9px;text-decoration:none}.outline a.active{background:#e8e8ed;color:#1d1d1f;font-weight:600}.outline em{color:#86868b;font-style:normal}.side-bottom{margin-top:18px;padding-top:12px;border-top:1px solid #e5e5e7}.side-bottom button{width:100%;padding:8px;border:0;border-radius:8px;background:#1d1d1f;color:#fff;font-size:9px}
+  main{padding:16px 20px 24px}.command{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:9px;padding:11px 13px;margin-bottom:15px;border-radius:11px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#86868b;font-size:9px}.command svg{width:12px;height:12px;color:#1d1d1f}.command span:nth-child(2){flex:1}.key{padding:3px 6px;border-radius:5px;background:#f5f5f7;color:#6e6e73;font-size:8px}
+  .shelves{display:grid;gap:12px}.shelf{scroll-margin-top:70px}.shelf-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:0 2px}.shelf-head h2{margin:0;font-size:11px;font-weight:650;letter-spacing:-.015em}.shelf-head span{color:#86868b;font-size:8px}.tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.tool{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:52px;padding:8px;border:0;border-radius:11px;background:#fff;text-align:left;cursor:pointer;transition:background .18s ease,transform .18s ease}.tool:hover{background:#fbfbfd;transform:translateY(-1px)}.tool:focus-visible{outline:3px solid rgba(0,113,227,.35);outline-offset:2px}.icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:8px;background:#f0f0f2;color:#1d1d1f;font-size:9px;font-weight:650}.info{min-width:0}.info b{display:block;overflow:hidden;margin-bottom:2px;font-size:9px;white-space:nowrap;text-overflow:ellipsis}.info small{display:block;overflow:hidden;color:#86868b;font-size:7px;white-space:nowrap;text-overflow:ellipsis}.hover-actions{position:absolute;right:7px;top:6px;display:flex;gap:3px;opacity:0;transition:opacity .15s ease}.tool:hover .hover-actions,.tool:focus-within .hover-actions{opacity:1}.hover-actions i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#e8e8ed;color:#515154;font-size:7px;font-style:normal}.favorite .icon{background:#eaf3ff;color:#06c}.favorite::after{content:"";position:absolute;left:12px;bottom:5px;width:4px;height:4px;border-radius:50%;background:#0071e3}
+  .behavior{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.behavior div{padding:11px;border:1px solid #dedee2;border-radius:9px;background:#fff}.behavior b{display:block;margin-bottom:3px;font-size:10px}.behavior p{margin:0;color:#6e6e73;font-size:9px;line-height:1.45}
+  @media(max-width:1050px){.tools{grid-template-columns:repeat(4,1fr)}}@media(max-width:820px){.tools{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){.shell{grid-template-columns:1fr}aside{display:none}main{padding:12px}.tools{grid-template-columns:repeat(2,1fr)}.tool{min-height:56px}}
+</style>
+<h2>AI Nav · 产品架最终方向</h2>
+<p class="subtitle">工具只出现一次，全部连续展示；左侧大纲只做定位，搜索和卡片保持稳定。</p>
+<div class="app">
+  <div class="bar"><span class="brand">AI Nav</span><div class="bar-actions"><span>工具库</span><span>设置</span></div></div>
+  <div class="shell">
+    <aside><div class="outline-title">页面目录</div><nav class="outline"><a class="active">常用工具 <em>5</em></a><a>写作 <em>4</em></a><a>图像 <em>5</em></a><a>开发 <em>3</em></a><a>未分类 <em>2</em></a></nav><div class="side-bottom"><button>＋ 添加工具</button></div></aside>
+    <main>
+      <div class="command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>搜索工具，或直接粘贴网址</span><span class="key">⌘ K</span></div>
+      <div class="shelves">
+        <section class="shelf"><div class="shelf-head"><h2>常用工具</h2><span>5 个 · 最近使用</span></div><div class="tools">
+          <button class="tool favorite"><span class="icon">C</span><span class="info"><b>ChatGPT</b><small>chatgpt.com</small></span><span class="hover-actions"><i>★</i><i>•••</i></span></button>
+          <button class="tool favorite"><span class="icon">Cl</span><span class="info"><b>Claude</b><small>claude.ai</small></span><span class="hover-actions"><i>★</i><i>•••</i></span></button>
+          <button class="tool favorite"><span class="icon">P</span><span class="info"><b>Perplexity</b><small>perplexity.ai</small></span><span class="hover-actions"><i>★</i><i>•••</i></span></button>
+          <button class="tool favorite"><span class="icon">F</span><span class="info"><b>Figma</b><small>figma.com</small></span><span class="hover-actions"><i>★</i><i>•••</i></span></button>
+          <button class="tool favorite"><span class="icon">N</span><span class="info"><b>NotebookLM</b><small>notebooklm.google</small></span><span class="hover-actions"><i>★</i><i>•••</i></span></button>
+        </div></section>
+        <section class="shelf"><div class="shelf-head"><h2>写作</h2><span>4 个</span></div><div class="tools">
+          <button class="tool"><span class="icon">N</span><span class="info"><b>Notion AI</b><small>notion.so</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">G</span><span class="info"><b>Gamma</b><small>gamma.app</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">J</span><span class="info"><b>Jasper</b><small>jasper.ai</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">Q</span><span class="info"><b>QuillBot</b><small>quillbot.com</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+        </div></section>
+        <section class="shelf"><div class="shelf-head"><h2>图像</h2><span>5 个</span></div><div class="tools">
+          <button class="tool"><span class="icon">M</span><span class="info"><b>Midjourney</b><small>midjourney.com</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">F</span><span class="info"><b>Firefly</b><small>firefly.adobe.com</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">I</span><span class="info"><b>Ideogram</b><small>ideogram.ai</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">L</span><span class="info"><b>Leonardo</b><small>leonardo.ai</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">R</span><span class="info"><b>Runway</b><small>runwayml.com</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+        </div></section>
+        <section class="shelf"><div class="shelf-head"><h2>开发</h2><span>3 个</span></div><div class="tools">
+          <button class="tool"><span class="icon">G</span><span class="info"><b>GitHub</b><small>github.com</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">V</span><span class="info"><b>v0</b><small>v0.dev</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+          <button class="tool"><span class="icon">L</span><span class="info"><b>Lovable</b><small>lovable.dev</small></span><span class="hover-actions"><i>☆</i><i>•••</i></span></button>
+        </div></section>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="behavior"><div><b>稳定</b><p>书签位置不会因为使用频率改变尺寸或重排。</p></div><div><b>渐进展示</b><p>收藏和编辑在悬停、聚焦或移动端菜单中出现。</p></div><div><b>全量可见</b><p>每个书签只出现一次，分类产品架连续排列。</p></div></div>

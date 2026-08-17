@@ -1,0 +1,99 @@
+<style>
+  .concept { display:grid; gap:24px; }
+  .browser {
+    overflow:hidden; border:1px solid #d9dce3; border-radius:18px;
+    background:#f6f7f9; box-shadow:0 18px 60px rgba(20,25,35,.12);
+  }
+  .browser-top { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#fff; border-bottom:1px solid #e5e7eb; }
+  .dot { width:8px; height:8px; border-radius:50%; background:#d5d8df; }
+  .address { margin-left:10px; flex:1; padding:7px 12px; border-radius:8px; background:#f2f3f5; color:#8b9099; font-size:11px; }
+  .app { min-height:620px; padding:22px; color:#16181d; background:linear-gradient(145deg,#fbfbfc,#f0f2f5); }
+  .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .brand { font-weight:750; letter-spacing:-.04em; font-size:19px; }
+  .brand span { color:#7069ff; }
+  .top-actions { display:flex; align-items:center; gap:8px; }
+  .circle { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:#fff; border:1px solid #e1e3e7; color:#676c75; font-size:12px; }
+  .hero { display:flex; justify-content:space-between; gap:24px; align-items:flex-end; margin-bottom:18px; }
+  .hero h1 { margin:0 0 5px; font-size:28px; letter-spacing:-.04em; color:#15171b; }
+  .hero p { margin:0; color:#747983; font-size:13px; }
+  .add { border:0; border-radius:10px; background:#17191d; color:white; padding:10px 14px; font-size:12px; box-shadow:0 5px 16px rgba(0,0,0,.14); }
+  .command { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #dfe2e7; border-radius:13px; padding:12px 14px; box-shadow:0 4px 18px rgba(32,38,48,.05); }
+  .command input { flex:1; border:0; outline:0; font-size:13px; color:#777; background:transparent; }
+  .key { font-size:10px; color:#969ba5; border:1px solid #e1e3e7; background:#f7f8fa; border-radius:5px; padding:2px 6px; }
+  .chips { display:flex; gap:7px; padding:13px 0 20px; overflow:hidden; }
+  .chip { white-space:nowrap; padding:6px 10px; font-size:11px; color:#70757e; background:#fff; border:1px solid #e1e3e7; border-radius:999px; }
+  .chip.active { color:#fff; background:#7069ff; border-color:#7069ff; }
+  .section-head { display:flex; justify-content:space-between; margin-bottom:10px; color:#777c85; font-size:10px; text-transform:uppercase; letter-spacing:.1em; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .tool { min-height:112px; padding:13px; background:rgba(255,255,255,.85); border:1px solid #e2e4e8; border-radius:13px; }
+  .tool-top { display:flex; align-items:center; justify-content:space-between; }
+  .icon { display:grid; place-items:center; width:30px; height:30px; border-radius:9px; font-weight:700; background:#f0efff; color:#625bea; }
+  .star { color:#b4b8c0; }
+  .tool h4 { margin:11px 0 3px; font-size:13px; color:#202329; }
+  .tool p { margin:0; font-size:10px; line-height:1.4; color:#858a93; }
+  .flow { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .flow-card { padding:16px; border:1px solid #e2e4e8; border-radius:12px; background:#fff; }
+  .flow-card b { display:block; margin-bottom:5px; font-size:13px; }
+  .flow-card p { margin:0; color:#777c85; font-size:12px; line-height:1.5; }
+  .num { display:inline-grid; place-items:center; width:22px; height:22px; margin-bottom:10px; border-radius:7px; background:#efeeff; color:#645dea; font-weight:700; font-size:11px; }
+  @media (max-width:800px) { .grid { grid-template-columns:repeat(2,1fr); } .flow { grid-template-columns:1fr; } }
+</style>
+
+<div class="concept">
+  <div>
+    <h2>AI Nav · 推荐的 MVP 最终效果</h2>
+    <p class="subtitle">一个个人 AI 工具首页：添加足够轻，寻找足够快，打开后立即能工作。</p>
+  </div>
+
+  <div class="browser">
+    <div class="browser-top">
+      <i class="dot"></i><i class="dot"></i><i class="dot"></i>
+      <div class="address">new tab · ai.nav</div>
+    </div>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">ai<span>.</span>nav</div>
+        <div class="top-actions"><div class="circle">☼</div><div class="circle">⚙</div></div>
+      </div>
+      <div class="hero">
+        <div><h1>今天想用 AI 做什么？</h1><p>你的工具，都在这里。</p></div>
+        <button class="add">＋ 添加工具</button>
+      </div>
+      <div class="command">
+        <span>⌕</span><input value="" placeholder="搜索名称、用途，或直接粘贴一个网址…" readonly><span class="key">⌘ K</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">全部 18</span><span class="chip">常用 6</span><span class="chip">写作 4</span>
+        <span class="chip">图像 5</span><span class="chip">开发 3</span>
+      </div>
+      <div class="section-head"><span>常用工具</span><span>按最近使用排序</span></div>
+      <div class="grid">
+        <div class="tool"><div class="tool-top"><span class="icon">C</span><span class="star">★</span></div><h4>ChatGPT</h4><p>对话、写作与日常思考</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">Cl</span><span class="star">★</span></div><h4>Claude</h4><p>长文分析与代码协作</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">F</span><span class="star">☆</span></div><h4>Figma</h4><p>界面设计与原型</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">P</span><span class="star">☆</span></div><h4>Perplexity</h4><p>带来源的联网搜索</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">L</span><span class="star">☆</span></div><h4>Lovable</h4><p>用自然语言生成应用</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">M</span><span class="star">☆</span></div><h4>Midjourney</h4><p>高质量图像生成</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">G</span><span class="star">☆</span></div><h4>GitHub</h4><p>代码与项目协作</p></div>
+        <div class="tool"><div class="tool-top"><span class="icon">N</span><span class="star">☆</span></div><h4>NotebookLM</h4><p>基于资料的研究助手</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="label">核心体验只有三步</div>
+    <div class="flow">
+      <div class="flow-card"><span class="num">1</span><b>粘贴网址</b><p>自动读取标题、图标与简介；用户只需确认。</p></div>
+      <div class="flow-card"><span class="num">2</span><b>自动整理</b><p>系统按用途分类；用户可收藏常用工具，无需维护复杂目录。</p></div>
+      <div class="flow-card"><span class="num">3</span><b>快速打开</b><p>搜索、分类或常用区找到工具，点击直接进入工作。</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="label">MVP 边界</div>
+    <div class="pros-cons">
+      <div class="pros"><h4>包含</h4><ul><li>单个或批量添加 URL</li><li>自动提取信息与用途分类</li><li>搜索、分类筛选、收藏</li><li>本地持久化与响应式首页</li></ul></div>
+      <div class="cons"><h4>暂不包含</h4><ul><li>公共工具市场与推荐流</li><li>账号、多设备同步、团队协作</li><li>复杂拖拽编排与多级目录</li><li>使用统计和浏览器扩展</li></ul></div>
+    </div>
+  </div>
+</div>

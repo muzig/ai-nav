@@ -1,0 +1,50 @@
+<style>
+  .frame{overflow:hidden;border:1px solid #dfe1e6;border-radius:18px;background:#f6f7f9;box-shadow:0 18px 55px rgba(20,25,35,.12)}
+  .chrome{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#fff;border-bottom:1px solid #e5e7eb}.chrome i{width:8px;height:8px;border-radius:50%;background:#d4d7dd}.url{flex:1;margin-left:8px;padding:6px 10px;border-radius:7px;background:#f2f3f5;color:#979ba3;font-size:10px}
+  .app{min-height:580px;padding:22px;background:linear-gradient(145deg,#fbfbfc,#f0f2f5);color:#1c1e23}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:27px}.brand{font-size:19px;font-weight:760;letter-spacing:-.05em}.brand b{color:#625bdf}.round{display:grid;place-items:center;width:30px;height:30px;border:1px solid #e0e2e7;border-radius:50%;background:#fff}
+  .layout{display:grid;grid-template-columns:182px minmax(0,1fr);gap:28px}aside{padding-right:18px;border-right:1px solid #dde0e5}.aside-title{display:flex;justify-content:space-between;margin:4px 0 14px;color:#858a94;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.menu{display:grid;gap:4px}.item{display:flex;justify-content:space-between;padding:8px 9px;border-radius:8px;color:#686d76;font-size:11px}.item.active{background:#e9e7ff;color:#554ed3;font-weight:650}.count{color:#a1a5ad}.add{width:100%;margin-top:18px;padding:9px;border:1px dashed #cfd2d8;border-radius:8px;background:transparent;color:#747983;font-size:10px}
+  h1{margin:0 0 5px;font-size:28px;letter-spacing:-.04em}.lead{margin:0 0 18px;color:#777c86;font-size:12px}.command{display:flex;align-items:center;gap:9px;padding:12px 14px;margin-bottom:24px;background:#fff;border:1px solid #dfe2e7;border-radius:12px;box-shadow:0 4px 18px rgba(30,35,45,.05)}.command span:nth-child(2){flex:1;color:#8a8f98;font-size:12px}.key{padding:2px 6px;border:1px solid #e1e3e7;border-radius:5px;background:#f7f8fa;font-size:9px;color:#999ea7}
+  .section-title{display:flex;justify-content:space-between;margin-bottom:10px;color:#7c818b;font-size:9px;letter-spacing:.12em;text-transform:uppercase}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tool{min-height:108px;padding:13px;border:1px solid #e2e4e8;border-radius:12px;background:rgba(255,255,255,.88)}.tool-top{display:flex;justify-content:space-between}.icon{display:grid;place-items:center;width:29px;height:29px;border-radius:8px;background:#eeedff;color:#5d56db;font-size:11px;font-weight:700}.tool h4{margin:11px 0 3px;font-size:12px}.tool p{margin:0;color:#898e97;font-size:9px;line-height:1.4}.mobile{display:none}
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.notes div{padding:15px;border:1px solid #e1e4e8;border-radius:11px;background:#fff}.notes b{display:block;margin-bottom:5px;font-size:12px}.notes p{margin:0;color:#777c85;font-size:11px}
+  @media(max-width:760px){.layout{grid-template-columns:1fr}.layout aside{display:none}.grid{grid-template-columns:repeat(2,1fr)}.mobile{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;margin-bottom:14px;border:1px solid #dedfe5;border-radius:10px;background:#fff;font-size:11px}.mobile b{color:#5b54dc}}
+</style>
+<h2>AI Nav MVP · 左侧分类导航</h2>
+<p class="subtitle">分类作为稳定的浏览起点放在左侧；移动端从左侧抽屉展开，用完即收。</p>
+<div class="frame">
+  <div class="chrome"><i></i><i></i><i></i><div class="url">new tab · ai.nav</div></div>
+  <div class="app">
+    <div class="top"><div class="brand">ai<b>.</b>nav</div><div class="round">☼</div></div>
+    <div class="mobile"><b>‹ 分类菜单</b><span>全部工具 · 18</span></div>
+    <div class="layout">
+      <aside>
+        <div class="aside-title"><span>分类</span><span>18</span></div>
+        <div class="menu">
+          <div class="item active"><span>全部工具</span><span class="count">18</span></div>
+          <div class="item"><span>常用</span><span class="count">6</span></div>
+          <div class="item"><span>写作</span><span class="count">4</span></div>
+          <div class="item"><span>图像</span><span class="count">5</span></div>
+          <div class="item"><span>开发</span><span class="count">3</span></div>
+          <div class="item"><span>未分类</span><span class="count">0</span></div>
+        </div>
+        <button class="add">＋ 添加工具</button>
+      </aside>
+      <main>
+        <h1>今天想用 AI 做什么？</h1><p class="lead">你的工具，都在这里。</p>
+        <div class="command"><span>⌕</span><span>搜索名称、用途，或直接粘贴网址…</span><span class="key">⌘ K</span></div>
+        <div class="section-title"><span>常用工具</span><span>最近使用</span></div>
+        <div class="grid">
+          <div class="tool"><div class="tool-top"><span class="icon">C</span><span>★</span></div><h4>ChatGPT</h4><p>对话、写作与日常思考</p></div>
+          <div class="tool"><div class="tool-top"><span class="icon">Cl</span><span>★</span></div><h4>Claude</h4><p>长文分析与代码协作</p></div>
+          <div class="tool"><div class="tool-top"><span class="icon">F</span><span>☆</span></div><h4>Figma</h4><p>界面设计与原型</p></div>
+          <div class="tool"><div class="tool-top"><span class="icon">P</span><span>☆</span></div><h4>Perplexity</h4><p>带来源的联网搜索</p></div>
+          <div class="tool"><div class="tool-top"><span class="icon">M</span><span>☆</span></div><h4>Midjourney</h4><p>高质量图像生成</p></div>
+          <div class="tool"><div class="tool-top"><span class="icon">N</span><span>☆</span></div><h4>NotebookLM</h4><p>基于资料的研究助手</p></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<div class="notes">
+  <div><b>桌面端</b><p>左侧菜单固定展示，符合从导航到内容的阅读顺序。</p></div>
+  <div><b>移动端</b><p>左侧入口打开左侧抽屉；选择分类后自动收起并保留筛选。</p></div>
+</div>

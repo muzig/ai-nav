@@ -1,0 +1,32 @@
+<style>
+  .demo{overflow:hidden;border:1px solid #d8dbe1;border-radius:14px;background:#f7f7f8;box-shadow:0 16px 48px rgba(20,25,35,.11)}.chrome{display:flex;gap:6px;padding:8px 11px;background:#fafafa;border-bottom:1px solid #e1e3e7}.chrome i{width:7px;height:7px;border-radius:50%;background:#d0d3d9}
+  .app{padding:14px 16px 18px;color:#1c1e22}.top{display:flex;align-items:center;justify-content:space-between;height:26px;margin-bottom:9px}.brand{font-size:16px;font-weight:780;letter-spacing:-.05em}.brand b{color:#5e57d8}.meta{color:#91959d;font-size:9px}
+  .layout{display:grid;grid-template-columns:132px 1fr;gap:17px}aside{padding-right:12px;border-right:1px solid #dbdde2}.aside-title{margin:3px 0 7px;color:#969aa2;font-size:8px;letter-spacing:.12em;text-transform:uppercase}.outline{display:grid;gap:1px}.outline span{display:flex;justify-content:space-between;padding:5px 7px;border-radius:6px;color:#737780;font-size:9px}.outline span.active{background:#e7e5fb;color:#514bc9;font-weight:700}.outline small{color:#a2a6ae}.aside-add{width:100%;margin-top:10px;padding:6px;border:1px solid #d6d8dd;border-radius:7px;background:#fff;color:#5d6169;font-size:9px}
+  .toolbar{display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:10px}.search{padding:7px 9px;border:1px solid #dbdde2;border-radius:7px;background:#fff;color:#858a93;font-size:9px}.add{padding:7px 10px;border:0;border-radius:7px;background:#202227;color:#fff;font-size:9px}.summary{display:flex;justify-content:space-between;margin-bottom:8px}.summary b{font-size:13px}.summary span{color:#8a8e96;font-size:8px}
+  .groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}.group{padding:9px;border:1px solid #dfe1e5;border-radius:9px;background:#fff}.group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.group-head h3{margin:0;font-size:10px}.group-head span{color:#999da5;font-size:8px}.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.tool{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:center;min-height:35px;padding:4px 5px;border-radius:6px;background:#f7f7f9}.icon{display:grid;place-items:center;width:22px;height:22px;border-radius:5px;background:#e9e7fa;color:#5750cb;font-size:8px;font-weight:750}.tool h4{overflow:hidden;margin:0 0 1px;font-size:8.5px;white-space:nowrap;text-overflow:ellipsis}.tool p{overflow:hidden;margin:0;color:#999da4;font-size:7px;white-space:nowrap;text-overflow:ellipsis}
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.rules div{padding:11px;border:1px solid #e0e2e6;border-radius:8px;background:#fff}.rules b{display:block;margin-bottom:3px;font-size:10px}.rules p{margin:0;color:#777c85;font-size:9px;line-height:1.4}
+  @media(max-width:800px){.groups{grid-template-columns:1fr}}@media(max-width:620px){.layout{grid-template-columns:1fr}.layout aside{display:none}.tools{grid-template-columns:1fr}}
+</style>
+<h2>AI Nav MVP · 内容驱动的紧凑分栏</h2>
+<p class="subtitle">页面高度跟随内容结束；分类并排填充，不再为稀疏分类保留整行空间。</p>
+<div class="demo"><div class="chrome"><i></i><i></i><i></i></div><div class="app">
+  <div class="top"><div class="brand">ai<b>.</b>nav</div><div class="meta">20 tools · Wed, Jul 29</div></div>
+  <div class="layout"><aside><div class="aside-title">页面目录</div><div class="outline"><span class="active">常用工具 <small>6</small></span><span>写作 <small>4</small></span><span>图像 <small>5</small></span><span>开发 <small>3</small></span><span>未分类 <small>2</small></span></div><button class="aside-add">＋ 添加工具</button></aside>
+  <main><div class="toolbar"><div class="search">⌕ 搜索工具，或粘贴网址…　⌘K</div><button class="add">＋ 添加</button></div><div class="summary"><b>全部工具</b><span>20 个 · 完整展示</span></div>
+    <div class="groups">
+      <section class="group"><div class="group-head"><h3>常用工具</h3><span>6</span></div><div class="tools">
+        <div class="tool"><span class="icon">C</span><div><h4>ChatGPT</h4><p>对话与思考</p></div></div><div class="tool"><span class="icon">Cl</span><div><h4>Claude</h4><p>分析与协作</p></div></div><div class="tool"><span class="icon">P</span><div><h4>Perplexity</h4><p>联网搜索</p></div></div><div class="tool"><span class="icon">F</span><div><h4>Figma</h4><p>设计与原型</p></div></div><div class="tool"><span class="icon">N</span><div><h4>NotebookLM</h4><p>资料研究</p></div></div><div class="tool"><span class="icon">G</span><div><h4>Gamma</h4><p>演示生成</p></div></div>
+      </div></section>
+      <section class="group"><div class="group-head"><h3>写作</h3><span>4</span></div><div class="tools">
+        <div class="tool"><span class="icon">N</span><div><h4>Notion AI</h4><p>文档写作</p></div></div><div class="tool"><span class="icon">J</span><div><h4>Jasper</h4><p>营销文案</p></div></div><div class="tool"><span class="icon">W</span><div><h4>Writesonic</h4><p>内容生成</p></div></div><div class="tool"><span class="icon">Q</span><div><h4>QuillBot</h4><p>改写润色</p></div></div>
+      </div></section>
+      <section class="group"><div class="group-head"><h3>图像</h3><span>5</span></div><div class="tools">
+        <div class="tool"><span class="icon">M</span><div><h4>Midjourney</h4><p>图像生成</p></div></div><div class="tool"><span class="icon">F</span><div><h4>Firefly</h4><p>创意编辑</p></div></div><div class="tool"><span class="icon">I</span><div><h4>Ideogram</h4><p>海报生成</p></div></div><div class="tool"><span class="icon">L</span><div><h4>Leonardo</h4><p>视觉资产</p></div></div><div class="tool"><span class="icon">R</span><div><h4>Runway</h4><p>视频生成</p></div></div>
+      </div></section>
+      <section class="group"><div class="group-head"><h3>开发</h3><span>3</span></div><div class="tools">
+        <div class="tool"><span class="icon">G</span><div><h4>GitHub</h4><p>代码协作</p></div></div><div class="tool"><span class="icon">V</span><div><h4>v0</h4><p>界面生成</p></div></div><div class="tool"><span class="icon">L</span><div><h4>Lovable</h4><p>应用生成</p></div></div>
+      </div></section>
+    </div>
+  </main></div>
+</div></div>
+<div class="rules"><div><b>取消固定高度</b><p>页面在最后一个分类结束，不制造属于界面的空白区域。</p></div><div><b>分类双栏</b><p>宽屏两列分类面板，书签在面板内双列排列。</p></div><div><b>自然响应</b><p>中小屏降为单列分类，目录仍只做定位。</p></div></div>

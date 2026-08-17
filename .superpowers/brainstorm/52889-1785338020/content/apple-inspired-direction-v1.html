@@ -1,0 +1,33 @@
+<style>
+  .canvas{overflow:hidden;border:1px solid #d2d2d7;border-radius:18px;background:#f5f5f7;color:#1d1d1f;box-shadow:0 20px 60px rgba(0,0,0,.10);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif}.topbar{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(250,250,252,.9);border-bottom:1px solid #e5e5e7;font-size:10px}.wordmark{font-weight:650;letter-spacing:-.03em}.toplinks{display:flex;gap:18px;color:#6e6e73}
+  .shell{display:grid;grid-template-columns:174px 1fr}.sidebar{padding:22px 14px;border-right:1px solid #e1e1e4;background:#fbfbfd}.side-title{margin:3px 10px 12px;color:#86868b;font-size:9px;font-weight:600}.outline{display:grid;gap:3px}.outline span{display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;color:#515154;font-size:10px}.outline span.active{background:#e8e8ed;color:#1d1d1f;font-weight:600}.outline em{color:#86868b;font-style:normal}.side-add{width:100%;margin-top:15px;padding:9px;border:0;border-radius:9px;background:#1d1d1f;color:#fff;font-size:9px}
+  .content{padding:28px 31px 36px}.hero{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}.hero h1{margin:0 0 5px;font-size:30px;font-weight:650;letter-spacing:-.045em}.hero p{margin:0;color:#6e6e73;font-size:11px}.hero-action{color:#06c;font-size:10px;font-weight:500}.search{display:flex;align-items:center;gap:10px;padding:13px 15px;margin-bottom:22px;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#86868b;font-size:10px}.search b{color:#1d1d1f}.search span:nth-child(2){flex:1}.key{padding:3px 6px;border-radius:5px;background:#f5f5f7;color:#6e6e73;font-size:8px}
+  .section{margin-top:20px}.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:10px}.section-head h2{margin:0;font-size:16px;letter-spacing:-.02em}.section-head span{color:#06c;font-size:9px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.card{display:flex;flex-direction:column;min-height:155px;padding:14px;border-radius:15px;background:#fff}.card.tint-blue{background:#edf5ff}.card.tint-warm{background:#fff6eb}.card.tint-lilac{background:#f4f1ff}.card-top{display:flex;justify-content:space-between}.icon{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#f5f5f7;color:#1d1d1f;font-size:11px;font-weight:650}.favorite{color:#06c;font-size:9px}.card h3{margin:13px 0 4px;font-size:13px;letter-spacing:-.02em}.card p{margin:0;color:#6e6e73;font-size:8.5px;line-height:1.45}.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:15px;color:#06c;font-size:9px}.open{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#06c;color:#fff;font-size:9px}
+  .principles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.principles div{padding:12px;border-radius:10px;background:#fff}.principles b{display:block;margin-bottom:3px;font-size:10px}.principles p{margin:0;color:#6e6e73;font-size:9px;line-height:1.45}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.shell{grid-template-columns:1fr}.sidebar{display:none}.content{padding:22px 15px}.cards{grid-template-columns:1fr}.hero h1{font-size:25px}}
+</style>
+<h2>AI Nav · Apple 官网式视觉语言</h2>
+<p class="subtitle">不是营销页复刻，而是适合工具库的紧凑版本：高对比中性色、苹果蓝动作、系统字体与轻盈表面。</p>
+<div class="canvas">
+  <div class="topbar"><span class="wordmark">AI Nav</span><div class="toplinks"><span>工具库</span><span>添加</span><span>设置</span></div></div>
+  <div class="shell">
+    <aside class="sidebar"><div class="side-title">页面目录</div><nav class="outline"><span class="active">常用工具 <em>6</em></span><span>写作 <em>4</em></span><span>图像 <em>5</em></span><span>开发 <em>3</em></span><span>未分类 <em>2</em></span></nav><button class="side-add">＋ 添加工具</button></aside>
+    <main class="content">
+      <div class="hero"><div><h1>你的 AI 工具，都在这里。</h1><p>收藏、整理，随时开始。</p></div><span class="hero-action">管理工具 ›</span></div>
+      <div class="search"><b>⌕</b><span>搜索名称、用途或域名，也可以直接粘贴网址</span><span class="key">⌘ K</span></div>
+      <section class="section"><div class="section-head"><h2>常用工具</h2><span>查看全部 6 个 ›</span></div><div class="cards">
+        <article class="card"><div class="card-top"><span class="icon">C</span><span class="favorite">● 常用</span></div><h3>ChatGPT</h3><p>通用对话、内容创作和日常问题分析。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card tint-blue"><div class="card-top"><span class="icon">Cl</span><span class="favorite">● 常用</span></div><h3>Claude</h3><p>长文理解、深度分析与代码协作。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card tint-warm"><div class="card-top"><span class="icon">P</span><span class="favorite">● 常用</span></div><h3>Perplexity</h3><p>提供来源引用的实时联网研究工具。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card tint-lilac"><div class="card-top"><span class="icon">F</span><span>☆</span></div><h3>Figma</h3><p>界面设计、原型制作与团队评审。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+      </div></section>
+      <section class="section"><div class="section-head"><h2>写作</h2><span>4 个工具</span></div><div class="cards">
+        <article class="card"><div class="card-top"><span class="icon">N</span><span>☆</span></div><h3>Notion AI</h3><p>在文档中起草、改写和整理信息。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card"><div class="card-top"><span class="icon">G</span><span>☆</span></div><h3>Gamma</h3><p>从大纲快速生成演示文稿和页面。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card"><div class="card-top"><span class="icon">J</span><span>☆</span></div><h3>Jasper</h3><p>面向营销场景的品牌内容生成。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+        <article class="card"><div class="card-top"><span class="icon">Q</span><span>☆</span></div><h3>QuillBot</h3><p>快速改写、润色并检查文本表达。</p><div class="card-foot"><span>打开工具</span><span class="open">↗</span></div></article>
+      </div></section>
+    </main>
+  </div>
+</div>
+<div class="principles"><div><b>颜色</b><p>#F5F5F7 背景、#1D1D1F 正文、#0066CC 动作。</p></div><div><b>字体</b><p>优先系统字体栈，不加载装饰性 Web Font。</p></div><div><b>密度</b><p>保留四列完整卡片，避免营销页式巨型留白。</p></div></div>
