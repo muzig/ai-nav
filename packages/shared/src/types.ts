@@ -4,6 +4,7 @@ export interface Bookmark {
   id: number;
   title: string;
   url: string;
+  internal_url: string;
   description: string;
   favicon: string;
   category_id: number | null;
@@ -18,6 +19,7 @@ export interface Bookmark {
 export interface CreateBookmarkInput {
   title: string;
   url: string;
+  internal_url?: string;
   description?: string;
   favicon?: string;
   category_id?: number | null;
@@ -26,6 +28,7 @@ export interface CreateBookmarkInput {
 export interface UpdateBookmarkInput {
   title?: string;
   url?: string;
+  internal_url?: string;
   description?: string;
   favicon?: string;
   category_id?: number | null;

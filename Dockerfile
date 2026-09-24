@@ -16,6 +16,10 @@ FROM node:20-alpine
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 WORKDIR /app
 
+# Install build tools so pnpm/npm can compile native modules (e.g. better-sqlite3)
+# via node-gyp as a fallback when prebuild-install cannot reach the network.
+RUN apk add --no-cache python3 make g++
+
 # Install tsx globally for running TypeScript workspace sources
 RUN npm install -g tsx
 

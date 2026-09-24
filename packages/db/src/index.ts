@@ -75,10 +75,10 @@ export function createBookmark(data: CreateBookmarkInput): Bookmark {
     throw new Error('BOOKMARK_URL_EXISTS');
   }
   const stmt = getDefaultDatabase().prepare(`
-    INSERT INTO bookmarks (title, url, description, favicon, category_id, sort_order)
-    VALUES (?, ?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM bookmarks WHERE category_id IS ?))
+    INSERT INTO bookmarks (title, url, internal_url, description, favicon, category_id, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM bookmarks WHERE category_id IS ?))
   `);
-  const result = stmt.run(data.title, normalizedUrl, data.description || '', data.favicon || '', data.category_id ?? null, data.category_id ?? null);
+  const result = stmt.run(data.title, normalizedUrl, data.internal_url || '', data.description || '', data.favicon || '', data.category_id ?? null, data.category_id ?? null);
   return getBookmark(result.lastInsertRowid as number)!;
 }
 
@@ -90,9 +90,9 @@ export function updateBookmark(id: number, data: UpdateBookmarkInput): Bookmark 
   const duplicate = getBookmarkByUrl(normalizedUrl);
   if (duplicate && duplicate.id !== id) throw new Error('BOOKMARK_URL_EXISTS');
   getDefaultDatabase().prepare(`
-    UPDATE bookmarks SET title = ?, url = ?, description = ?, favicon = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP
+    UPDATE bookmarks SET title = ?, url = ?, internal_url = ?, description = ?, favicon = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).run(merged.title, normalizedUrl, merged.description, merged.favicon, merged.category_id, id);
+  `).run(merged.title, normalizedUrl, merged.internal_url || '', merged.description, merged.favicon, merged.category_id, id);
   return getBookmark(id);
 }
 

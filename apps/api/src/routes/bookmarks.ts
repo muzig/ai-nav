@@ -22,13 +22,13 @@ router.get('/', (_req, res) => {
 
 // POST /api/bookmarks
 router.post('/', (req, res) => {
-  const { title, url, description, favicon, category_id } = req.body;
+  const { title, url, internal_url, description, favicon, category_id } = req.body;
   if (!title || !url) {
     return res.status(400).json({ error: 'title and url are required' });
   }
   try {
     new URL(url);
-    const bookmark = createBookmark({ title, url, description, favicon, category_id });
+    const bookmark = createBookmark({ title, url, internal_url, description, favicon, category_id });
     res.status(201).json(bookmark);
   } catch (error) {
     if (error instanceof Error && error.message === 'BOOKMARK_URL_EXISTS') {

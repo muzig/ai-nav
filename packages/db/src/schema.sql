@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS bookmarks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   url TEXT NOT NULL,
+  internal_url TEXT DEFAULT '',
   description TEXT DEFAULT '',
   favicon TEXT DEFAULT '',
   category_id INTEGER,

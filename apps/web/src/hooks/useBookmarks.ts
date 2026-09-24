@@ -1,3 +1,4 @@
+import { resolveBookmarkUrl } from '../utils/url';
 import { useState, useEffect, useCallback } from 'react';
 import type { Bookmark, Category } from '@ai-nav/shared';
 import type { BulkCreateResult, OpenBookmarkResponse } from '@ai-nav/shared';
@@ -110,7 +111,7 @@ export function useBookmarks() {
     setBookmarks((items) => items.map((item) =>
       item.id === bookmark.id ? { ...item, last_opened_at: openedAt } : item
     ));
-    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+    window.open(resolveBookmarkUrl(bookmark), '_blank', 'noopener,noreferrer');
     void requestJson<OpenBookmarkResponse>(`${API}/bookmarks/${bookmark.id}/open`, {
       method: 'POST',
     }).then(({ bookmark: updated }) => {

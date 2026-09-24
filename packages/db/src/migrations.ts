@@ -17,6 +17,9 @@ function addLegacyBookmarkColumns(database: Database.Database): void {
   if (!columns.has('last_opened_at')) {
     database.exec('ALTER TABLE bookmarks ADD COLUMN last_opened_at TEXT');
   }
+  if (!columns.has('internal_url')) {
+    database.exec("ALTER TABLE bookmarks ADD COLUMN internal_url TEXT DEFAULT ''");
+  }
 }
 
 export function runMigrations(database: Database.Database, versionOneSchema: string): void {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Trash2 } from 'lucide-react';
 import type { Bookmark, Category } from '../hooks/useBookmarks';
+import { detectAccessMode } from '../utils/url';
 
 interface EditBookmarkModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface EditBookmarkModalProps {
 export default function EditBookmarkModal({ isOpen, bookmark, categories, onClose, onSave, onDelete }: EditBookmarkModalProps) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
+  const [internalUrl, setInternalUrl] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
 
@@ -21,6 +23,7 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
     if (bookmark) {
       setTitle(bookmark.title);
       setUrl(bookmark.url);
+      setInternalUrl(bookmark.internal_url || '');
       setDescription(bookmark.description);
       setCategoryId(String(bookmark.category_id ?? ''));
     }
@@ -31,6 +34,7 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
     onSave(bookmark.id, {
       title: title.trim(),
       url: url.trim(),
+      internal_url: internalUrl.trim(),
       description: description.trim(),
       category_id: categoryId ? Number(categoryId) : null,
     });
@@ -38,6 +42,8 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
   };
 
   if (!isOpen || !bookmark) return null;
+
+  const mode = detectAccessMode();
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -51,10 +57,22 @@ export default function EditBookmarkModal({ isOpen, bookmark, categories, onClos
             <label className="cell__label block mb-1">title</label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input" />
           </div>
+
           <div>
-            <label className="cell__label block mb-1">url</label>
+            <label className="cell__label block mb-1">url <span className="text-muted">(external / Tailscale)</span></label>
             <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className="input" style={{ fontFamily: 'var(--font-outlier)' }} />
           </div>
+
+          <div>
+            <label className="cell__label block mb-1">internal url <span className="text-muted">(LAN, optional)</span></label>
+            <input type="url" value={internalUrl} onChange={(e) => setInternalUrl(e.target.value)} className="input" style={{ fontFamily: 'var(--font-outlier)' }} />
+            <p className="text-muted" style={{ fontSize: '11px', marginTop: '4px' }}>
+              {mode === 'lan'
+                ? 'On LAN — clicking uses the internal URL.'
+                : 'Remote — clicking uses the external URL.'}
+            </p>
+          </div>
+
           <div>
             <label className="cell__label block mb-1">description</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="input" style={{ resize: 'none' }} />
