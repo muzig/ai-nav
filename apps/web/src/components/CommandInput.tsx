@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Search, Command } from 'lucide-react';
+import { Search, Command, X } from 'lucide-react';
 
 interface CommandInputProps {
   query: string;
@@ -33,6 +33,9 @@ export default function CommandInput({ query, onSearch, onAddUrls }: CommandInpu
         type="search"
         value={query}
         onChange={(event) => onSearch(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') onSearch('');
+        }}
         onPaste={(event) => {
           const urls = event.clipboardData.getData('text').match(URL_PATTERN) ?? [];
           if (urls.length) {
@@ -42,6 +45,7 @@ export default function CommandInput({ query, onSearch, onAddUrls }: CommandInpu
         }}
         placeholder="Search tools, or paste a URL"
       />
+      {query && <button className="command-clear" aria-label="Clear search" onClick={() => { onSearch(''); inputRef.current?.focus(); }}><X size={16} /></button>}
       <span className="command-key"><Command size={10} />K</span>
     </div>
   );

@@ -7,6 +7,7 @@ const bookmark: Bookmark = {
   id: 1,
   title: 'Custom local app',
   url: 'http://100.64.0.10:6300/',
+  internal_url: '',
   description: '',
   favicon: 'http://100.64.0.10:6300/favicon.ico',
   category_id: null,
@@ -19,6 +20,20 @@ const bookmark: Bookmark = {
 };
 
 describe('ToolItem', () => {
+  it('preserves native link actions and dismisses the action popup with Escape', () => {
+    const open = vi.fn();
+    render(<ToolItem bookmark={bookmark} onOpen={open} onFavorite={vi.fn()} onEdit={vi.fn()} />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', bookmark.url);
+    fireEvent.click(link, { ctrlKey: true });
+    expect(open).not.toHaveBeenCalled();
+    const trigger = screen.getByRole('button', { name: /More actions/ });
+    fireEvent.click(trigger);
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
   it('uses a local-service glyph instead of requesting an unreachable stored favicon', () => {
     render(
       <ToolItem

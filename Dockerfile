@@ -34,9 +34,10 @@ COPY --from=build /app/apps/api/src apps/api/src
 # Copy built frontend
 COPY --from=build /app/apps/web/dist apps/web/dist
 
-# Copy db package (raw source — no build step)
+# Copy database source and compiled exports
 COPY --from=build /app/packages/db/package.json packages/db/
 COPY --from=build /app/packages/db/src packages/db/src
+COPY --from=build /app/packages/db/dist packages/db/dist
 
 # Copy shared package (raw source — no build step)
 COPY --from=build /app/packages/shared/package.json packages/shared/

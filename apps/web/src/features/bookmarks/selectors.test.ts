@@ -11,6 +11,7 @@ function bookmark(overrides: Partial<Bookmark>): Bookmark {
     id: 1,
     title: 'Claude',
     url: 'https://claude.ai',
+    internal_url: '',
     description: 'Analysis',
     favicon: '',
     category_id: 1,

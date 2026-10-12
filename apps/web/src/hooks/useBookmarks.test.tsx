@@ -21,5 +21,6 @@ describe('useBookmarks', () => {
     expect(result.current.bookmarks).toEqual([]);
     expect(result.current.categories).toEqual([]);
     expect(result.current.grouped).toEqual([]);
+    expect(result.current.error).toBe('Not found');
   });
 });

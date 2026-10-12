@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BookOpenText, Code2, Edit3, LayoutDashboard, MoreHorizontal, Server, Star } from 'lucide-react';
 import type { Bookmark } from '@ai-nav/shared';
 import { isLocalServiceUrl } from '../features/bookmarks/selectors';
 import { resolveLocalServiceIcon } from '../features/bookmarks/serviceIcons';
+import { resolveBookmarkUrl } from '../utils/url';
 
 interface ToolItemProps {
   bookmark: Bookmark;
@@ -72,30 +73,45 @@ function ToolIcon({ bookmark, localService }: { bookmark: Bookmark; localService
 
 export default function ToolItem({ bookmark, onOpen, onFavorite, onEdit }: ToolItemProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const localService = isLocalServiceUrl(bookmark.url);
+  const itemRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const destination = resolveBookmarkUrl(bookmark);
+  const localService = isLocalServiceUrl(destination);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!itemRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMenuOpen(false); menuButtonRef.current?.focus(); }
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [menuOpen]);
 
   return (
-    <div className={`tool-item ${bookmark.is_favorite ? 'is-favorite' : ''} ${localService ? 'is-local-service' : ''}`}>
-      <button className="tool-primary" onClick={() => onOpen(bookmark)}>
+    <div ref={itemRef} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setMenuOpen(false); }} className={`tool-item ${bookmark.is_favorite ? 'is-favorite' : ''} ${localService ? 'is-local-service' : ''}`}>
+      <a className="tool-primary" href={destination} target="_blank" rel="noopener noreferrer" title={bookmark.description || bookmark.title} onClick={(event) => {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        onOpen(bookmark);
+      }}>
         <span className="tool-icon">
           <ToolIcon bookmark={bookmark} localService={localService} />
         </span>
         <span className="tool-copy">
           <strong>{bookmark.title}</strong>
-          <small>{localService ? serviceAddress(bookmark.url) : hostname(bookmark.url)}</small>
-          {localService && (
-            <span className="tool-status"><span className="tool-status-dot" aria-hidden="true" />Local service</span>
-          )}
+          <small>{localService ? serviceAddress(destination) : hostname(destination)}</small>
         </span>
-      </button>
+      </a>
       <div className="tool-actions">
         <button
-          aria-label={`${bookmark.is_favorite ? 'Remove' : 'Add'} ${bookmark.title} ${bookmark.is_favorite ? 'from' : 'to'} favorites`}
-          onClick={() => void onFavorite(bookmark.id, !bookmark.is_favorite)}
-        >
-          <Star size={13} fill={bookmark.is_favorite ? 'currentColor' : 'none'} />
-        </button>
-        <button
+          ref={menuButtonRef}
           aria-label={`More actions for ${bookmark.title}`}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}

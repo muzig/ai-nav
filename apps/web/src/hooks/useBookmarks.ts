@@ -25,9 +25,11 @@ export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [bmData, catData] = await Promise.all([
         requestJson<Bookmark[]>(`${API}/bookmarks`),
@@ -39,6 +41,7 @@ export function useBookmarks() {
       setBookmarks(bmData);
       setCategories(catData);
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load your tools');
       console.error('Failed to fetch data:', err);
     } finally {
       setLoading(false);
@@ -205,6 +208,7 @@ export function useBookmarks() {
     categories,
     grouped,
     loading,
+    error,
     addBookmark,
     addBookmarksBulk,
     updateBookmark,
